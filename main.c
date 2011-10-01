@@ -20,12 +20,12 @@ int WinMain(int argc,char** argv)
      * requesting a software surface
      */
     screen = SDL_SetVideoMode(640, 480, 8, SDL_SWSURFACE);
-    if ( screen == NULL ) {
+    if (screen == NULL) {
         fprintf(stderr, "Couldn't set 640x480x8 video mode: %s\n", SDL_GetError());
         exit(1);
     }
 	
-	DrawCircle(screen,screen->w/2,screen->h/2,100);
+	DrawCircle(screen,screen->w/2-50,screen->h/2-50,100);
 	DrawLine(screen,screen->w/2,screen->h/2,screen->w-10,screen->h-10);
 	
 	while(1);

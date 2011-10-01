@@ -50,26 +50,6 @@ void doUnlock(SDL_Surface* what)
 	if (SDL_MUSTLOCK(what)) SDL_UnlockSurface(what);
 }
 
-void DrawCircle(SDL_Surface *where,int x,int y,int r)
-{
-    /* Map the color yellow to this display (R=0xff, G=0xFF, B=0x00)
-       Note:  If the display is palettized, you must set the palette first.
-    */
-    Uint32 yellow = SDL_MapRGB(where->format, 0xff, 0xff, 0x00);
-
-    /* Lock the screen for direct access to the pixels */
-
-	doLock(where);
-	
-	for (int i = 0;i < 360;i++)
-       putpixel(where, x + r*cos((float)i), y + r*sin((float)i), yellow);
-    
-	doUnlock(where);
-	
-    /* Update just the part of the display that we've changed */
-    SDL_UpdateRect(where, x-r, y-r, 2*r, 2*r);
-}
-
 void DrawLine(SDL_Surface *where,int x0,int y0,int x1,int y1)
 {
    int dx = abs(x1-x0),dy = abs(y1-y0);
@@ -101,4 +81,46 @@ void DrawLine(SDL_Surface *where,int x0,int y0,int x1,int y1)
    doUnlock(where);
    
    SDL_UpdateRect(where, 0, 0, x1, y1);
+}
+
+void DrawCircle(SDL_Surface *where,int x0, int y0, int radius)
+{
+  int f = 1 - radius;
+  int ddF_x = 1;
+  int ddF_y = -2 * radius;
+  int x = 0;
+  int y = radius;
+ 
+  Uint32 yellow = SDL_MapRGB(where->format, 0xff, 0xff, 0x00);
+  doLock(where);
+ 
+  putpixel(where,x0, y0 + radius,yellow);
+  putpixel(where,x0, y0 - radius,yellow);
+  putpixel(where,x0 + radius, y0,yellow);
+  putpixel(where,x0 - radius, y0,yellow);
+ 
+  while (x < y){
+    
+	if (f >= 0){
+      y--;
+      ddF_y += 2;
+      f += ddF_y;
+    }
+    
+	x++;
+    ddF_x += 2;
+    f += ddF_x;    
+    
+	putpixel(where,x0 + x, y0 + y,yellow);
+    putpixel(where,x0 - x, y0 + y,yellow);
+    putpixel(where,x0 + x, y0 - y,yellow);
+    putpixel(where,x0 - x, y0 - y,yellow);
+    putpixel(where,x0 + y, y0 + x,yellow);
+    putpixel(where,x0 - y, y0 + x,yellow);
+    putpixel(where,x0 + y, y0 - x,yellow);
+    putpixel(where,x0 - y, y0 - x,yellow);
+  }
+  
+  doUnlock(where);
+  SDL_UpdateRect(where, x0-radius, y0-radius, 2*radius, 2*radius);
 }
