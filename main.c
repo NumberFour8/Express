@@ -1,5 +1,6 @@
 #include <stdio.h>
-#include <SDL/SDL.h>
+
+#include "drawing.h"
 
 int WinMain(int argc,char** argv)
 {
@@ -7,8 +8,7 @@ int WinMain(int argc,char** argv)
 
     /* Initialize the SDL library */
     if( SDL_Init(SDL_INIT_VIDEO) < 0 ) {
-        fprintf(stderr,
-                "Couldn't initialize SDL: %s\n", SDL_GetError());
+        fprintf(stderr,"Couldn't initialize SDL: %s\n", SDL_GetError());
         exit(1);
     }
 
@@ -21,10 +21,12 @@ int WinMain(int argc,char** argv)
      */
     screen = SDL_SetVideoMode(640, 480, 8, SDL_SWSURFACE);
     if ( screen == NULL ) {
-        fprintf(stderr, "Couldn't set 640x480x8 video mode: %s\n",
-                        SDL_GetError());
+        fprintf(stderr, "Couldn't set 640x480x8 video mode: %s\n", SDL_GetError());
         exit(1);
     }
+	
+	DrawCircle(screen,screen->w/2,screen->h/2,100);
+	DrawLine(screen,screen->w/2,screen->h/2,screen->w-10,screen->h-10);
 	
 	while(1);
 	exit(0);
