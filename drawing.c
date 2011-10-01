@@ -124,3 +124,9 @@ void DrawCircle(SDL_Surface *where,int x0, int y0, int radius)
   doUnlock(where);
   SDL_UpdateRect(where, x0-radius, y0-radius, 2*radius, 2*radius);
 }
+
+void FillCircle(SDL_Surface *where,int x0,int y0,int r)
+{
+	for (int i = r;i > 0;i--)
+		DrawCircle(where,x0,y0,i);
+}

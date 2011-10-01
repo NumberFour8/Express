@@ -2,6 +2,12 @@
 
 #include "drawing.h"
 
+void RenderScene(SDL_Surface* Screen)
+{
+	FillCircle(Screen,Screen->w/2-50,Screen->h/2-50,100);
+	DrawLine(Screen,Screen->w/2,Screen->h/2,Screen->w-10,Screen->h-10);
+}
+
 int WinMain(int argc,char** argv)
 {
 	SDL_Surface *screen;
@@ -25,9 +31,8 @@ int WinMain(int argc,char** argv)
         exit(1);
     }
 	
-	DrawCircle(screen,screen->w/2-50,screen->h/2-50,100);
-	DrawLine(screen,screen->w/2,screen->h/2,screen->w-10,screen->h-10);
+	RenderScene(screen);
 	
-	while(1);
+	getc(stdin);
 	exit(0);
 }
