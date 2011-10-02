@@ -20,27 +20,27 @@ int WinMain(int argc,char* argv[])
 {
 	SDL_Surface *screen;
 
-    /* Initialize the SDL library */
+    // Inicializace knihoven
     if(SDL_Init(SDL_INIT_VIDEO) < 0 ) {
         fprintf(stderr,"Couldn't initialize SDL: %s\n", SDL_GetError());
         exit(1);
     }
-
-    /* Clean up on exit */
     atexit(SDL_Quit);
 
+	if (TTF_Init() == -1){
+		fprintf(stderr,"Unable to initialize SDL_ttf: %s\n", TTF_GetError());
+		exit(1);
+	}
+	atexit(TTF_Quit);
+	
+	// Inicializace grafiky
     screen = SDL_SetVideoMode(640, 480, 32, SDL_HWSURFACE|SDL_DOUBLEBUF);
     if (screen == NULL) {
         fprintf(stderr, "Couldn't set 640x480x32 video mode: %s\n", SDL_GetError());
         exit(1);
     }
 	
-	if (TTF_Init() == -1){
-		fprintf(stderr,"Unable to initialize SDL_ttf: %s\n", TTF_GetError());
-		exit(1);
-	}
-	
-	// Nacti font
+	// Nacteni fontu
 	MyFont = TTF_OpenFont("test_font.ttf", 60);
 	if (!MyFont){
 		fprintf(stderr,"Unable to open font");
@@ -63,6 +63,7 @@ int WinMain(int argc,char* argv[])
 			  run = 0;
 			  break;
 			}
+			
 		    if (event.type == SDL_VIDEOEXPOSE){
 		     RenderScene(screen);
 			 DrawImage(Text,screen,1,1);
@@ -73,6 +74,7 @@ int WinMain(int argc,char* argv[])
 		SDL_Delay(10);
 	}
 	
+	// Uvolni font a s nim asociovany povrch
 	TTF_CloseFont(MyFont);
 	SDL_FreeSurface(Text);
 	
