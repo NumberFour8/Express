@@ -4,8 +4,10 @@
 
 void RenderScene(SDL_Surface* Screen)
 {
-	FillCircle(Screen,Screen->w/2-50,Screen->h/2-50,100);
-	DrawLine(Screen,Screen->w/2,Screen->h/2,Screen->w-10,Screen->h-10);
+	Uint32 yellow = SDL_MapRGB(Screen->format,0xff,0xff,0);
+	
+	FillCircle(Screen,Screen->w/2-50,Screen->h/2-50,100,yellow);
+	DrawLine(Screen,Screen->w/2,Screen->h/2,Screen->w-10,Screen->h-10,yellow);
 }
 
 int WinMain(int argc,char** argv)
