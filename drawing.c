@@ -58,8 +58,7 @@ void DrawLine(SDL_Surface *where,int x0,int y0,int x1,int y1,Uint32 pixel)
    if (y0 < y1) sy = 1; else sy = -1;
  
    
-   doLock(where);
-   while(1) {
+   while (1) {
      putpixel(where,x0,y0,pixel);
      if (x0 == x1 && y0 == y1) break;
      e2 = 2*err;
@@ -74,9 +73,6 @@ void DrawLine(SDL_Surface *where,int x0,int y0,int x1,int y1,Uint32 pixel)
        y0 = y0 + sy;
      }
    }
-   doUnlock(where);
-   
-   SDL_UpdateRect(where, 0, 0, x1, y1);
 }
 
 void DrawCircle(SDL_Surface *where,int x0, int y0, int radius, Uint32 pixel)
@@ -85,7 +81,6 @@ void DrawCircle(SDL_Surface *where,int x0, int y0, int radius, Uint32 pixel)
    int x = radius;
    int y = 0;
 
-   doLock(where);
    while (x >= y)
    {
        putpixel(where, x0 + x, y0 + y, pixel);
@@ -116,15 +111,14 @@ void DrawCircle(SDL_Surface *where,int x0, int y0, int radius, Uint32 pixel)
          error -= x;
        }
    }
-   doUnlock(where);
-   SDL_UpdateRect(where, x0-radius, y0-radius, 2*radius, 2*radius);
 }
 
-void FillCircle(SDL_Surface *where, int x0, int y0, double r, Uint32 pix) 
+void FillCircle(SDL_Surface *where, int x0, int y0, int radius, Uint32 pix) 
 {
    const int BPP = where->format->BytesPerPixel;
 	
-   doLock(where);
+   double r = (double)radius;
+   
    for (double dy = 1;dy <= r;dy += 1.0){
        double dx = floor(sqrt((2.0 * r * dy) - (dy * dy)));
        int x = x0 - dx;
@@ -139,7 +133,15 @@ void FillCircle(SDL_Surface *where, int x0, int y0, double r, Uint32 pix)
            target_pixel_b += BPP;
        }
    }
-   doUnlock(where);
-   
-   SDL_UpdateRect(where, x0-r, y0-r, 2*r, 2*r);
+   DrawCircle(where,x0,y0,radius,pix);
 } 
+
+void DrawImage(SDL_Surface* source, SDL_Surface* destination, int x, int y) 
+{
+    if (!source || !destination) return;
+
+    SDL_Rect destRect;
+    destRect.x = x;
+    destRect.y = y;
+    SDL_BlitSurface(source,0,destination,&destRect);
+}
