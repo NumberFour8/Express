@@ -1,12 +1,11 @@
 #include <stdio.h>
 
 #include "drawing.h"
-
-TTF_Font* MyFont = NULL;
+#include "builder.h"
 
 void RenderScene(SDL_Surface* Screen)
 {
-	Uint32 yellow = SDL_MapRGB(Screen->format,0xff,0xff,0);
+	Uint32 yellow = SDL_MapRGB(Screen->format,0,0,0xff);
 	
 	doLock(Screen);
 	
@@ -33,6 +32,8 @@ int WinMain(int argc,char* argv[])
 	}
 	atexit(TTF_Quit);
 	
+	GML_init();
+	
 	// Inicializace grafiky
     screen = SDL_SetVideoMode(640, 480, 32, SDL_HWSURFACE|SDL_DOUBLEBUF);
     if (screen == NULL) {
@@ -41,7 +42,7 @@ int WinMain(int argc,char* argv[])
     }
 	
 	// Nacteni fontu
-	MyFont = TTF_OpenFont("test_font.ttf", 60);
+	TTF_Font* MyFont = TTF_OpenFont("test_font.ttf", 60);
 	if (!MyFont){
 		fprintf(stderr,"Unable to open font");
 		exit(1);
