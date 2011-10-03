@@ -1,16 +1,17 @@
 #include <stdio.h>
 
 #include "drawing.h"
-#include "builder.h"
+#include "model.h"
 
 void RenderScene(SDL_Surface* Screen)
 {
-	Uint32 yellow = SDL_MapRGB(Screen->format,0,0,0xff);
+	Uint32 blue = SDL_MapRGB(Screen->format,0xc8,0xd8,0xff);
+	Uint32 black = SDL_MapRGB(Screen->format,0,0,0);
 	
 	doLock(Screen);
 	
-	FillCircle(Screen,Screen->w/2,Screen->h/2,100,yellow);
-	DrawLine(Screen,Screen->w/2,Screen->h/2,Screen->w-10,Screen->h-10,yellow);
+	FillCircle(Screen,Screen->w/2,Screen->h/2,100,blue,black);	
+	DrawLine(Screen,Screen->w/2,Screen->h/2,Screen->w-10,Screen->h-10,black);
 	
 	doUnlock(Screen);
 }

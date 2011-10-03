@@ -113,7 +113,7 @@ void DrawCircle(SDL_Surface *where,int x0, int y0, int radius, Uint32 pixel)
    }
 }
 
-void FillCircle(SDL_Surface *where, int x0, int y0, int radius, Uint32 pix) 
+void FillCircle(SDL_Surface *where, int x0, int y0, int radius, Uint32 inner,Uint32 outter) 
 {
    const int BPP = where->format->BytesPerPixel;
 	
@@ -127,13 +127,13 @@ void FillCircle(SDL_Surface *where, int x0, int y0, int radius, Uint32 pix)
        Uint8 *target_pixel_b = (Uint8*)where->pixels + ((int)(y0 - r + dy)) * where->pitch + x * BPP;
                
        for (;x <= x0 + dx;++x){
-           *(Uint32*)target_pixel_a = pix;
-           *(Uint32*)target_pixel_b = pix;
+           *(Uint32*)target_pixel_a = inner;
+           *(Uint32*)target_pixel_b = inner;
            target_pixel_a += BPP;
            target_pixel_b += BPP;
        }
    }
-   DrawCircle(where,x0,y0,radius,pix);
+   DrawCircle(where,x0,y0,radius,outter);
 } 
 
 void DrawImage(SDL_Surface* source, SDL_Surface* destination, int x, int y) 
