@@ -3,7 +3,7 @@
 #include "drawing.h"
 #include "model.h"
 
-void RenderScene(SDL_Surface* Screen)
+void RenderScene(SDL_Surface* Screen,Model* Mod)
 {
 	Uint32 blue = SDL_MapRGB(Screen->format,0xc8,0xd8,0xff);
 	Uint32 black = SDL_MapRGB(Screen->format,0,0,0);
@@ -14,14 +14,16 @@ void RenderScene(SDL_Surface* Screen)
 	DrawLine(Screen,Screen->w/2,Screen->h/2,Screen->w-10,Screen->h-10,black);
 	
 	doUnlock(Screen);*/
-	Model Mod;
-	memset(&Mod,0,sizeof(Model));
-	
-	BuildModel("circle.gml",&Mod);
 }
 
 int WinMain(int argc,char* argv[])
 {
+	// Chybí-li cesta ke GML souboru, vypiš pouze zprávu o použití
+	if (argc < 2){
+	  fprintf(stderr,"Usage: express.exe [path-to-gml-file]");
+	  exit(0);
+	}
+
 	SDL_Surface *screen;
 
     // Inicializace knihoven
@@ -32,7 +34,7 @@ int WinMain(int argc,char* argv[])
     atexit(SDL_Quit);
 
 	if (TTF_Init() == -1){
-		fprintf(stderr,"Unable to initialize SDL_ttf: %s\n", TTF_GetError());
+		fprintf(stderr,"Couldn't initialize SDL_ttf: %s\n", TTF_GetError());
 		exit(1);
 	}
 	atexit(TTF_Quit);
@@ -45,6 +47,15 @@ int WinMain(int argc,char* argv[])
         fprintf(stderr, "Couldn't set 640x480x32 video mode: %s\n", SDL_GetError());
         exit(1);
     }
+	
+	// Naèti model z parametru programu
+	Model MyModel;
+	memset(&MyModel,0,sizeof(Model));
+	
+	if (!BuildModel(argv[1],&MyModel)){
+	   fprintf(stderr, "Couldn't read GML file: %s\n",argv[1]);
+	   exit(1);
+	}
 	
 	// Vycisti scenu bilou barvou
 	SDL_FillRect(screen, 0, SDL_MapRGB(screen->format, 0xff, 0xff, 0xff));
@@ -60,7 +71,7 @@ int WinMain(int argc,char* argv[])
 			}
 			
 		    if (event.type == SDL_VIDEOEXPOSE){
-		     RenderScene(screen);
+		     RenderScene(screen,&MyModel);
 			 SDL_Flip(screen);
 			}
         }
@@ -68,5 +79,6 @@ int WinMain(int argc,char* argv[])
 		SDL_Delay(10);
 	}
 	
+	FreeModel(&MyModel);
 	exit(0);
 }

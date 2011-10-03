@@ -12,31 +12,51 @@ Vertex* GetVertexAddressById(Vertex* pVertices,unsigned int Size,unsigned int ID
 	return NULL;
 }
 
+Vertex** GetAllNeighbours(Model* pModel,Vertex* pVertex,unsigned int *uSize)
+{
+	Vertex** Ret = NULL;
+	unsigned int nCount = 0;
+	for (unsigned int i = 0;i < pModel->uCountEdges;++i){
+		if (pModel->pEdges[i].pFrom == pVertex){ // Hrana na níž jsme zdrojovým vrcholem
+		 Ret = (Vertex**)realloc((void*)Ret,(nCount+1)*sizeof(void*));
+		 *(Ret+nCount) = pModel->pEdges[i].pTo;
+		 ++nCount;
+		}
+		else if (pModel->pEdges[i].pTo == pVertex){ // Hrana na níž jsme cílovým vrcholem
+		 Ret = (Vertex**)realloc((void*)Ret,(nCount+1)*sizeof(void*));
+		 *(Ret+nCount) = pModel->pEdges[i].pFrom;
+		 ++nCount;
+		}
+	}
+	*uSize = nCount;
+	return Ret;
+}
+
 int BuildModel(const char* szFile,Model* pModel)
 {
+	// Zkus otevøít soubor s grafem
 	FILE* fp = fopen(szFile,"r");
 	if (!fp){
 		fprintf(stderr,"Unable to open %s for reading.\n",szFile);
 		return 0;
 	}
 	
+	// Naalokuj potøebné struktury a parsuj soubor
 	struct GML_stat* stat=(struct GML_stat*)malloc(sizeof(struct GML_stat));
 	stat->key_list = NULL;
 	
-	struct GML_pair* list = GML_parser (fp, stat, 0);
+	struct GML_pair* list = GML_parser(fp, stat, 0);
 	
 	if (stat->err.err_num != GML_OK){
-		fprintf(stderr,"Error reading GML file on %d : %d", stat->err.line, stat->err.column);
+		fprintf(stderr,"Error reading GML file on %d : %d\n", stat->err.line, stat->err.column);
 		fclose(fp);
 		free(stat);
 		return 0;
 	}
 	
-	int nEdges = 0,nVertices = 0;
-	
-	memset((void*)pModel,0,sizeof(Model));
-	
 	struct GML_pair* ptr = list,*inner = NULL;
+	int nEdges = 0,nVertices = 0;
+	memset((void*)pModel,0,sizeof(Model));
 	
 	// Vybírej vrcholy
 	for (;ptr != NULL;ptr=ptr->next){
@@ -44,9 +64,10 @@ int BuildModel(const char* szFile,Model* pModel)
 		  ptr = ptr->value.list;
 		if (strcmp(ptr->key,"node") == 0 && ptr->kind == GML_LIST){
 		  // Realokuj pole vrcholù na novou velikost
-		  pModel->pVertices = (Vertex*)realloc(pModel->pVertices,(nVertices+1)*sizeof(Vertex));
+		  pModel->pVertices = (Vertex*)realloc((void*)pModel->pVertices,(nVertices+1)*sizeof(Vertex));
 		  Vertex* NewV = (pModel->pVertices)+nVertices;
 		  memset((void*)NewV,0,sizeof(Vertex));
+		  NewV->mass = 5; // TODO: Zatím nastavena konstantní váha vrcholu!
 		  ++nVertices;
 		  
 		  inner = ptr->value.list;
@@ -60,7 +81,7 @@ int BuildModel(const char* szFile,Model* pModel)
 		}
 		else if (strcmp(ptr->key,"edge") == 0 && ptr->kind == GML_LIST){
 		  // Realokuj pole hran na novou velikost
-		  pModel->pEdges = (Edge*)realloc(pModel->pEdges,(nEdges+1)*sizeof(Edge));
+		  pModel->pEdges = (Edge*)realloc((void*)pModel->pEdges,(nEdges+1)*sizeof(Edge));
 		  Edge* NewE = (pModel->pEdges)+nEdges;
 		  memset((void*)NewE,0,sizeof(Edge));
 		  ++nEdges;
@@ -79,33 +100,43 @@ int BuildModel(const char* szFile,Model* pModel)
 		else continue;
 	}
 	
-	// Teï už máme všechny vrcholy, proveï napojení hran na vrcholy
-	for (int i = 0;i < nEdges;++i){
-	  Edge* c = (pModel->pEdges+i);
-	  c->pTo = GetVertexAddressById(pModel->pVertices,nVertices,c->idTo);
-	  c->pFrom = GetVertexAddressById(pModel->pVertices,nVertices,c->idFrom);
-	}
-	
-	// ... zapiš velikosti polí, uvolni pamìt a hotovo
-	pModel->uCountVertices = (unsigned int)nVertices;
-	pModel->uCountEdges = (unsigned int)nEdges;
-	
+	// Uvolni pamìt asociovanou s parserem a uzavøi soubor
 	GML_free_list(list, stat->key_list);
 	free(stat);
 	fclose(fp);
+	
+	// ... zapiš velikosti polí
+	pModel->uCountVertices = (unsigned int)nVertices;
+	pModel->uCountEdges = (unsigned int)nEdges;
+	
+	// Teï už máme všechny vrcholy, proveï napojení hran na vrcholy
+	for (int i = 0;i < nEdges;++i){
+	  Edge* c = (pModel->pEdges+i);
+	  if (c->idTo == c->idFrom){ // Nedovol cyklické hrany!
+		fprintf(stderr,"Invalid GML file - cyclic edges are not supported!");
+		FreeModel(pModel);
+		return 0;
+	  }
+	  // Najdi adresy vrcholù podle jejich ID
+	  c->pTo = GetVertexAddressById(pModel->pVertices,nVertices,c->idTo);
+	  c->pFrom = GetVertexAddressById(pModel->pVertices,nVertices,c->idFrom);
+	}
 	
 	return 1;
 }
 
 void FreeModel(Model* pModel)
 {
+	// Uvolni všechny vrcholy a hrany
 	if (pModel->pVertices)
 	  free(pModel->pVertices);
 	if (pModel->pEdges)
 	  free(pModel->pEdges);
 	
+	// Když nejsou žádné povrchy, jsme hotovi
 	if (!pModel->VertexSurfaces) return;
 	
+	// Jinak je tøeba uvolni všechny povrchy
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i)
 	   SDL_FreeSurface(pModel->VertexSurfaces[i]);
 	free(pModel->VertexSurfaces);
@@ -140,7 +171,7 @@ int CreateModelSurfaces(Model* pModel,const char *szFont,Uint32 InnerColor,Uint3
 		
 		if (!c){ // Nepodaøilo se vytvoøit povrch, vše uvolni a skonèi
 		  TTF_CloseFont(LabelFont);
-		  free(pModel->VertexSurfaces);
+		  free((void*)pModel->VertexSurfaces);
 		  return 0;
 		}
 		
@@ -157,5 +188,21 @@ int CreateModelSurfaces(Model* pModel,const char *szFont,Uint32 InnerColor,Uint3
 		SDL_FreeSurface(Text);
 	}
 	
+	// Zavøi font a skonèi
 	TTF_CloseFont(LabelFont);
+	
+	return 1;
+}
+
+void SetRandomLocations(Model* pModel,unsigned int uXmax,unsigned int uYmax)
+{
+	// Zkontroluj zda se nejedná o prázdný model
+	if (pModel->uCountVertices == 0 || !pModel->pVertices)
+	  return;
+	  
+	srand(time(0));
+	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
+		(pModel->pVertices+i)->position.x = rand()%uXmax;
+		(pModel->pVertices+i)->position.y = rand()%uYmax;
+	}
 }

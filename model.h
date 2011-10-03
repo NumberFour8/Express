@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_ttf.h>
@@ -18,8 +19,8 @@ typedef struct {
 }Vector2;
 
 typedef struct {
-	unsigned int id;
-	Vector2 position,velocity;
+	unsigned int id,mass;
+	Vector2 position,velocity,force;
 	char szVertexName[MAX_LENGTH_LABEL];
 }Vertex;
 
@@ -41,5 +42,6 @@ int BuildModel(const char* szFile,Model* pModel);
 void FreeModel(Model* pModel);
 
 int CreateModelSurfaces(Model* pModel,const char* szFont,Uint32 InnerCircle,Uint32 OutterCircle,SDL_Color FontColor);
+void SetRandomLocations(Model* pModel,unsigned int uXmax,unsigned int uYmax);
 
 #endif
