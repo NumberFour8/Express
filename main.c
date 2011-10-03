@@ -3,10 +3,8 @@
 #include "drawing.h"
 #include "model.h"
 
-void RenderScene(SDL_Surface* Screen,Model* Mod)
+void RenderScene(SDL_Surface* Screen,Model* pModel)
 {
-	Uint32 blue = SDL_MapRGB(Screen->format,0xc8,0xd8,0xff);
-	Uint32 black = SDL_MapRGB(Screen->format,0,0,0);
 	
 	/*doLock(Screen);
 	
@@ -14,17 +12,31 @@ void RenderScene(SDL_Surface* Screen,Model* Mod)
 	DrawLine(Screen,Screen->w/2,Screen->h/2,Screen->w-10,Screen->h-10,black);
 	
 	doUnlock(Screen);*/
+	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
+	  DrawSurface(pModel->VertexSurfaces[i],Screen,pModel->pVertices[i].position.x,pModel->pVertices[i].position.y);
+	}
+	
 }
 
 int WinMain(int argc,char* argv[])
 {
 	// Chybí-li cesta ke GML souboru, vypiš pouze zprávu o použití
-	if (argc < 2){
+	/*if (argc < 2){
 	  fprintf(stderr,"Usage: express.exe [path-to-gml-file]");
 	  exit(0);
-	}
+	}*/
 
 	SDL_Surface *screen;
+	SDL_Color blue = {0xc8,0xd8,0xff},black = {0,0,0};
+	
+	// Konfigurace zobrazení
+	GraphicCfg Conf;
+	memset(&Conf,0,sizeof(GraphicCfg));
+	strcpy(Conf.szFontFile,"calibri.ttf");
+	Conf.innerCircle = blue;
+	Conf.outterCircle = Conf.lineColor = Conf.fontColor = black;
+	Conf.uFontSize = 12; Conf.uNodeRadius = 12;
+	Conf.uScreenWidth = 640; Conf.uScreenHeight = 480; Conf.uBPP = 32;
 
     // Inicializace knihoven
     if(SDL_Init(SDL_INIT_VIDEO) < 0 ) {
@@ -42,9 +54,9 @@ int WinMain(int argc,char* argv[])
 	GML_init();
 	
 	// Inicializace grafiky
-    screen = SDL_SetVideoMode(640, 480, 32, SDL_HWSURFACE|SDL_DOUBLEBUF);
+    screen = SDL_SetVideoMode(Conf.uScreenWidth, Conf.uScreenHeight, Conf.uBPP, SDL_HWSURFACE|SDL_DOUBLEBUF);
     if (screen == NULL) {
-        fprintf(stderr, "Couldn't set 640x480x32 video mode: %s\n", SDL_GetError());
+        fprintf(stderr, "Couldn't set %d x %d x %d video mode: %s\n",Conf.uScreenWidth,Conf.uScreenHeight,Conf.uBPP,SDL_GetError());
         exit(1);
     }
 	
@@ -52,13 +64,23 @@ int WinMain(int argc,char* argv[])
 	Model MyModel;
 	memset(&MyModel,0,sizeof(Model));
 	
-	if (!BuildModel(argv[1],&MyModel)){
+	if (!BuildModel("circle.gml",&MyModel)){
 	   fprintf(stderr, "Couldn't read GML file: %s\n",argv[1]);
 	   exit(1);
 	}
 	
+	// Získej potøebné barvy
+	
+	// Zkus vytvoøit povrchy pro vrcholy a nastav jim náhodné polohy
+	if (!CreateModelSurfaces(&MyModel,Conf)){
+	  fprintf(stderr, "Error rendering graph surfaces.\n");
+	  FreeModel(&MyModel);
+	  exit(1);
+	}
+	SetRandomLocations(&MyModel,Conf);
+	
 	// Vycisti scenu bilou barvou
-	SDL_FillRect(screen, 0, SDL_MapRGB(screen->format, 0xff, 0xff, 0xff));
+	SDL_FillRect(screen, 0, SDL_MapRGB(screen->format,0xff,0xff,0xff));
 	
 	SDL_Event event; 
 	int run = 1;
@@ -76,7 +98,7 @@ int WinMain(int argc,char* argv[])
 			}
         }
 		
-		SDL_Delay(10);
+		SDL_Delay(10); // Šetøíme CPU
 	}
 	
 	FreeModel(&MyModel);

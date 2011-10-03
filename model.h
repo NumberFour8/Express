@@ -38,10 +38,16 @@ typedef struct {
 	SDL_Surface** VertexSurfaces;
 }Model;
 
+typedef struct {
+	char szFontFile[255];
+	SDL_Color innerCircle,outterCircle,lineColor,fontColor;
+	unsigned int uFontSize,uNodeRadius,uScreenWidth,uScreenHeight,uBPP;
+}GraphicCfg;
+
 int BuildModel(const char* szFile,Model* pModel);
 void FreeModel(Model* pModel);
 
-int CreateModelSurfaces(Model* pModel,const char* szFont,Uint32 InnerCircle,Uint32 OutterCircle,SDL_Color FontColor);
-void SetRandomLocations(Model* pModel,unsigned int uXmax,unsigned int uYmax);
+int CreateModelSurfaces(Model* pModel,const GraphicCfg Config);
+void SetRandomLocations(Model* pModel,const GraphicCfg Config);
 
 #endif

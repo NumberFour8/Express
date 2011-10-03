@@ -142,16 +142,17 @@ void FreeModel(Model* pModel)
 	free(pModel->VertexSurfaces);
 }
 
-int CreateModelSurfaces(Model* pModel,const char *szFont,Uint32 InnerColor,Uint32 OutterColor,SDL_Color FontColor)
+int CreateModelSurfaces(Model* pModel,const GraphicCfg Config)
 {
 	// Zkontroluj zda se nejedná o prázdný model
 	if (pModel->uCountVertices == 0 || !pModel->pVertices)
 	  return 0;
 	
-	const int FontSize = 20,Height = 100,Width = 100,Gap = 5;
+	pModel->VertexSurfaces = NULL;	
+	const int Gap = 2; // Mezera mezi koleèkem a textem
 	
 	// Zkus otevøít daný font
-	TTF_Font* LabelFont = TTF_OpenFont(szFont, FontSize);
+	TTF_Font* LabelFont = TTF_OpenFont((char*)Config.szFontFile, Config.uFontSize);
 	if (!LabelFont)
 	  return 0;
 	
@@ -159,30 +160,38 @@ int CreateModelSurfaces(Model* pModel,const char *szFont,Uint32 InnerColor,Uint3
 	pModel->VertexSurfaces = (SDL_Surface**)malloc(pModel->uCountVertices*sizeof(void*));
 	memset(pModel->VertexSurfaces,0,pModel->uCountVertices*sizeof(void*));
 	
-	int h = 0,w = 0,lineSkip = 0;
+	int hLabel = 0,wLabel = 0,lineSkip = 0,realWidth = 0,realHeight = 0;
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
 		// Zjisti reálnou velikost fontu
-		TTF_SizeText(LabelFont,(char*)pModel->pVertices[i].szVertexName,&w,&h);
+		TTF_SizeText(LabelFont,(char*)pModel->pVertices[i].szVertexName,&wLabel,&hLabel);
 		lineSkip = TTF_FontLineSkip(LabelFont);
 		
+		realWidth = ((Config.uNodeRadius*2+2) > wLabel ? (Config.uNodeRadius*2+2) : wLabel+2);
+		realHeight = Config.uNodeRadius*2+2+hLabel+lineSkip+Gap;
+		
 		// Zkus vytvoøit nový povrch
-		pModel->VertexSurfaces[i] = SDL_CreateRGBSurface(SDL_HWSURFACE,Height+h+lineSkip+Gap,(Width > w ? Width : w)+1,32,0,0,0,0);
+		pModel->VertexSurfaces[i] = SDL_CreateRGBSurface(SDL_HWSURFACE,realWidth,realHeight,Config.uBPP,0,0,0,0);
 		SDL_Surface *c = pModel->VertexSurfaces[i];
 		
 		if (!c){ // Nepodaøilo se vytvoøit povrch, vše uvolni a skonèi
 		  TTF_CloseFont(LabelFont);
 		  free((void*)pModel->VertexSurfaces);
+		  pModel->VertexSurfaces = NULL;
 		  return 0;
 		}
 		
+		SDL_FillRect(c, 0, SDL_MapRGB(c->format, 0xff, 0xff, 0xff));
+		Uint32 inner = SDL_MapRGB(c->format, Config.innerCircle.r,Config.innerCircle.g,Config.innerCircle.b),
+			   outter = SDL_MapRGB(c->format, Config.outterCircle.r,Config.outterCircle.g,Config.outterCircle.b);
+		
 		// Uzamkni povrch a vykresli koleèko
 		doLock(c);
-		FillCircle(c,Width/2,Height/2,Height/2,InnerColor,OutterColor);
+		FillCircle(c,realWidth/2,Config.uNodeRadius,Config.uNodeRadius,inner,outter);
 		doUnlock(c);
 		
 		// ... spoleènì s textem
-		SDL_Surface *Text = TTF_RenderText_Blended(LabelFont,(char*)pModel->pVertices[i].szVertexName,FontColor);
-		DrawSurface(Text,c,1,Height+Gap);
+		SDL_Surface *Text = TTF_RenderText_Blended(LabelFont,(char*)pModel->pVertices[i].szVertexName,Config.fontColor);
+		DrawSurface(Text,c,2,Config.uNodeRadius*2+2+Gap);
 		SDL_Flip(c);
 		
 		SDL_FreeSurface(Text);
@@ -194,7 +203,7 @@ int CreateModelSurfaces(Model* pModel,const char *szFont,Uint32 InnerColor,Uint3
 	return 1;
 }
 
-void SetRandomLocations(Model* pModel,unsigned int uXmax,unsigned int uYmax)
+void SetRandomLocations(Model* pModel,const GraphicCfg Config)
 {
 	// Zkontroluj zda se nejedná o prázdný model
 	if (pModel->uCountVertices == 0 || !pModel->pVertices)
@@ -202,7 +211,7 @@ void SetRandomLocations(Model* pModel,unsigned int uXmax,unsigned int uYmax)
 	  
 	srand(time(0));
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
-		(pModel->pVertices+i)->position.x = rand()%uXmax;
-		(pModel->pVertices+i)->position.y = rand()%uYmax;
+		(pModel->pVertices+i)->position.x = Config.uNodeRadius+2+rand()%(Config.uScreenWidth-Config.uNodeRadius*2-5);
+		(pModel->pVertices+i)->position.y = Config.uNodeRadius+2+rand()%(Config.uScreenHeight-Config.uNodeRadius*2-Config.uFontSize-5);
 	}
 }
