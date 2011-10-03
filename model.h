@@ -27,6 +27,7 @@ typedef struct {
 	Vertex* pFrom;
 	Vertex* pTo;
 	int value;
+	unsigned int idFrom,idTo;
 }Edge;
 
 typedef struct {

@@ -21,6 +21,8 @@ int BuildModel(const char* szFile,Model* pModel)
 	}
 	
 	struct GML_stat* stat=(struct GML_stat*)malloc(sizeof(struct GML_stat));
+	stat->key_list = NULL;
+	
 	struct GML_pair* list = GML_parser (fp, stat, 0);
 	
 	if (stat->err.err_num != GML_OK){
@@ -37,7 +39,9 @@ int BuildModel(const char* szFile,Model* pModel)
 	struct GML_pair* ptr = list,*inner = NULL;
 	
 	// Vybírej vrcholy
-	for (;ptr != NULL;++ptr){
+	for (;ptr != NULL;ptr=ptr->next){
+		if (strcmp(ptr->key,"graph") == 0 && ptr->kind == GML_LIST && ptr->value.list != NULL)
+		  ptr = ptr->value.list;
 		if (strcmp(ptr->key,"node") == 0 && ptr->kind == GML_LIST){
 		  // Realokuj pole vrcholù na novou velikost
 		  pModel->pVertices = (Vertex*)realloc(pModel->pVertices,(nVertices+1)*sizeof(Vertex));
@@ -46,21 +50,15 @@ int BuildModel(const char* szFile,Model* pModel)
 		  ++nVertices;
 		  
 		  inner = ptr->value.list;
-		  for (;inner != NULL;++inner){
+		  for (;inner != NULL;inner=inner->next){
 			if (strcmp(inner->key,"id") == 0 && inner->kind == GML_INT)
 				NewV->id = (unsigned int)inner->value.integer;
-			if (strcmp(inner->key,"label") == 0 && inner->kind == GML_STRING)
+			else if (strcmp(inner->key,"label") == 0 && inner->kind == GML_STRING)
 			  memcpy((void*)NewV->szVertexName,inner->value.string,strlen(inner->value.string) > MAX_LENGTH_LABEL ? MAX_LENGTH_LABEL : strlen(inner->value.string));
+			else continue; 
 		  }
 		}
-		else continue;
-	}
-	
-	ptr = list; inner = NULL;
-	
-	// Všechny vrcholy pøeèteny, teï vybírej hrany a spojuj vrcholy
-	for (;ptr != NULL;++ptr){
-		if (strcmp(ptr->key,"edge") == 0 && ptr->kind == GML_LIST){
+		else if (strcmp(ptr->key,"edge") == 0 && ptr->kind == GML_LIST){
 		  // Realokuj pole hran na novou velikost
 		  pModel->pEdges = (Edge*)realloc(pModel->pEdges,(nEdges+1)*sizeof(Edge));
 		  Edge* NewE = (pModel->pEdges)+nEdges;
@@ -68,19 +66,27 @@ int BuildModel(const char* szFile,Model* pModel)
 		  ++nEdges;
 		  
 		  inner = ptr->value.list;
-		  for (;inner != NULL;++inner){
+		  for (;inner != NULL;inner=inner->next){
 			if (strcmp(inner->key,"source") == 0 && inner->kind == GML_INT)
-			   NewE->pFrom = GetVertexAddressById(pModel->pVertices,nVertices,(unsigned int)inner->value.integer);
-			if (strcmp(inner->key,"target") == 0 && inner->kind == GML_INT)
-			   NewE->pTo = GetVertexAddressById(pModel->pVertices,nVertices,(unsigned int)inner->value.integer);
-			if (strcmp(inner->key,"value") == 0 && inner->kind == GML_INT)
+			   NewE->idFrom = (unsigned int)inner->value.integer;
+			else if (strcmp(inner->key,"target") == 0 && inner->kind == GML_INT)
+			   NewE->idTo = (unsigned int)inner->value.integer;
+			else if (strcmp(inner->key,"value") == 0 && inner->kind == GML_INT)
 			   NewE->value = (unsigned int)inner->value.integer;
+			else continue;
 		  }
 		}
 		else continue;
 	}
 	
-	// ... hotovo
+	// Teï už máme všechny vrcholy, proveï napojení hran na vrcholy
+	for (int i = 0;i < nEdges;++i){
+	  Edge* c = (pModel->pEdges+i);
+	  c->pTo = GetVertexAddressById(pModel->pVertices,nVertices,c->idTo);
+	  c->pFrom = GetVertexAddressById(pModel->pVertices,nVertices,c->idFrom);
+	}
+	
+	// ... zapiš velikosti polí, uvolni pamìt a hotovo
 	pModel->uCountVertices = (unsigned int)nVertices;
 	pModel->uCountEdges = (unsigned int)nEdges;
 	
@@ -107,30 +113,47 @@ void FreeModel(Model* pModel)
 
 int CreateModelSurfaces(Model* pModel,const char *szFont,Uint32 InnerColor,Uint32 OutterColor,SDL_Color FontColor)
 {
+	// Zkontroluj zda se nejedná o prázdný model
 	if (pModel->uCountVertices == 0 || !pModel->pVertices)
 	  return 0;
 	
 	const int FontSize = 20,Height = 100,Width = 100,Gap = 5;
 	
+	// Zkus otevøít daný font
+	TTF_Font* LabelFont = TTF_OpenFont(szFont, FontSize);
+	if (!LabelFont)
+	  return 0;
+	
+	// Naalokuj potøebný poèet povrchù pro vrcholy
 	pModel->VertexSurfaces = (SDL_Surface**)malloc(pModel->uCountVertices*sizeof(void*));
 	memset(pModel->VertexSurfaces,0,pModel->uCountVertices*sizeof(void*));
 	
-	TTF_Font* LabelFont = TTF_OpenFont(szFont, FontSize);
-	
 	int h = 0,w = 0,lineSkip = 0;
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
+		// Zjisti reálnou velikost fontu
 		TTF_SizeText(LabelFont,(char*)pModel->pVertices[i].szVertexName,&w,&h);
 		lineSkip = TTF_FontLineSkip(LabelFont);
 		
+		// Zkus vytvoøit nový povrch
 		pModel->VertexSurfaces[i] = SDL_CreateRGBSurface(SDL_HWSURFACE,Height+h+lineSkip+Gap,(Width > w ? Width : w)+1,32,0,0,0,0);
 		SDL_Surface *c = pModel->VertexSurfaces[i];
 		
+		if (!c){ // Nepodaøilo se vytvoøit povrch, vše uvolni a skonèi
+		  TTF_CloseFont(LabelFont);
+		  free(pModel->VertexSurfaces);
+		  return 0;
+		}
+		
+		// Uzamkni povrch a vykresli koleèko
 		doLock(c);
 		FillCircle(c,Width/2,Height/2,Height/2,InnerColor,OutterColor);
 		doUnlock(c);
 		
+		// ... spoleènì s textem
 		SDL_Surface *Text = TTF_RenderText_Blended(LabelFont,(char*)pModel->pVertices[i].szVertexName,FontColor);
-		DrawImage(Text,c,1,Height+Gap);
+		DrawSurface(Text,c,1,Height+Gap);
+		SDL_Flip(c);
+		
 		SDL_FreeSurface(Text);
 	}
 	

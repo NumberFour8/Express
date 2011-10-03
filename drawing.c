@@ -136,7 +136,7 @@ void FillCircle(SDL_Surface *where, int x0, int y0, int radius, Uint32 inner,Uin
    DrawCircle(where,x0,y0,radius,outter);
 } 
 
-void DrawImage(SDL_Surface* source, SDL_Surface* destination, int x, int y) 
+void DrawSurface(SDL_Surface* source, SDL_Surface* destination, int x, int y) 
 {
     if (!source || !destination) return;
 

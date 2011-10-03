@@ -8,12 +8,16 @@ void RenderScene(SDL_Surface* Screen)
 	Uint32 blue = SDL_MapRGB(Screen->format,0xc8,0xd8,0xff);
 	Uint32 black = SDL_MapRGB(Screen->format,0,0,0);
 	
-	doLock(Screen);
+	/*doLock(Screen);
 	
 	FillCircle(Screen,Screen->w/2,Screen->h/2,100,blue,black);	
 	DrawLine(Screen,Screen->w/2,Screen->h/2,Screen->w-10,Screen->h-10,black);
 	
-	doUnlock(Screen);
+	doUnlock(Screen);*/
+	Model Mod;
+	memset(&Mod,0,sizeof(Model));
+	
+	BuildModel("circle.gml",&Mod);
 }
 
 int WinMain(int argc,char* argv[])
@@ -42,17 +46,6 @@ int WinMain(int argc,char* argv[])
         exit(1);
     }
 	
-	// Nacteni fontu
-	TTF_Font* MyFont = TTF_OpenFont("test_font.ttf", 60);
-	if (!MyFont){
-		fprintf(stderr,"Unable to open font");
-		exit(1);
-	}
-	
-	// Vytvor text
-	SDL_Color black = {0, 0, 0};
-	SDL_Surface *Text = TTF_RenderText_Blended(MyFont,"Awesome hero !",black);
-	
 	// Vycisti scenu bilou barvou
 	SDL_FillRect(screen, 0, SDL_MapRGB(screen->format, 0xff, 0xff, 0xff));
 	
@@ -68,17 +61,12 @@ int WinMain(int argc,char* argv[])
 			
 		    if (event.type == SDL_VIDEOEXPOSE){
 		     RenderScene(screen);
-			 DrawImage(Text,screen,1,1);
 			 SDL_Flip(screen);
 			}
         }
 		
 		SDL_Delay(10);
 	}
-	
-	// Uvolni font a s nim asociovany povrch
-	TTF_CloseFont(MyFont);
-	SDL_FreeSurface(Text);
 	
 	exit(0);
 }

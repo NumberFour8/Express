@@ -13,5 +13,5 @@ void DrawLine(SDL_Surface *where, int x0, int y0, int x1, int y1, Uint32 pix);
 
 void FillCircle(SDL_Surface *where, int x0, int y0, int radius, Uint32 inner,Uint32 outter);
 
-void DrawImage(SDL_Surface* source, SDL_Surface* destination, int x, int y);
+void DrawSurface(SDL_Surface* source, SDL_Surface* destination, int x, int y);
 #endif
