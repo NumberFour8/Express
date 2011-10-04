@@ -6,12 +6,13 @@
 void RenderScene(SDL_Surface* Screen,Model* pModel)
 {
 	
-	/*doLock(Screen);
+	doLock(Screen);
 	
+	Uint32 blue = SDL_MapRGB(Screen->format,0xc8,0xd8,0xff),black = SDL_MapRGB(Screen->format,0,0,0);
 	FillCircle(Screen,Screen->w/2,Screen->h/2,100,blue,black);	
-	DrawLine(Screen,Screen->w/2,Screen->h/2,Screen->w-10,Screen->h-10,black);
+	//DrawLine(Screen,Screen->w/2,Screen->h/2,Screen->w-10,Screen->h-10,black);
 	
-	doUnlock(Screen);*/
+	doUnlock(Screen);
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
 	  DrawSurface(pModel->VertexSurfaces[i],Screen,pModel->pVertices[i].position.x,pModel->pVertices[i].position.y);
 	}
