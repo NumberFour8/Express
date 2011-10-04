@@ -27,7 +27,7 @@ typedef struct {
 typedef struct {
 	Vertex* pFrom;
 	Vertex* pTo;
-	int value;
+	float value;
 	unsigned int idFrom,idTo;
 }Edge;
 
@@ -41,13 +41,20 @@ typedef struct {
 typedef struct {
 	char szFontFile[255];
 	SDL_Color innerCircle,outterCircle,lineColor,fontColor;
-	unsigned int uFontSize,uNodeRadius,uScreenWidth,uScreenHeight,uBPP;
+	unsigned int uFontSize,uNodeRadius,uScreenWidth,uScreenHeight,uBPP,
+				 uMaxSurfaceW,uMaxSurfaceH;
 }GraphicCfg;
+
+typedef struct {
+	float fDamping,fSpring,fSimStep;
+}SimulationCfg;
 
 int BuildModel(const char* szFile,Model* pModel);
 void FreeModel(Model* pModel);
 
-int CreateModelSurfaces(Model* pModel,const GraphicCfg Config);
+int CreateModelSurfaces(Model* pModel,GraphicCfg *Config);
 void SetRandomLocations(Model* pModel,const GraphicCfg Config);
+
+void DoSimulationStep(Model* pModel,const SimulationCfg Config);
 
 #endif

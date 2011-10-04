@@ -142,7 +142,7 @@ void FreeModel(Model* pModel)
 	free(pModel->VertexSurfaces);
 }
 
-int CreateModelSurfaces(Model* pModel,const GraphicCfg Config)
+int CreateModelSurfaces(Model* pModel,GraphicCfg *Config)
 {
 	// Zkontroluj zda se nejedná o prázdný model
 	if (pModel->uCountVertices == 0 || !pModel->pVertices)
@@ -152,7 +152,7 @@ int CreateModelSurfaces(Model* pModel,const GraphicCfg Config)
 	const int Gap = 2; // Mezera mezi koleèkem a textem
 	
 	// Zkus otevøít daný font
-	TTF_Font* LabelFont = TTF_OpenFont((char*)Config.szFontFile, Config.uFontSize);
+	TTF_Font* LabelFont = TTF_OpenFont((char*)Config->szFontFile, Config->uFontSize);
 	if (!LabelFont)
 	  return 0;
 	
@@ -160,17 +160,20 @@ int CreateModelSurfaces(Model* pModel,const GraphicCfg Config)
 	pModel->VertexSurfaces = (SDL_Surface**)malloc(pModel->uCountVertices*sizeof(void*));
 	memset(pModel->VertexSurfaces,0,pModel->uCountVertices*sizeof(void*));
 	
-	int hLabel = 0,wLabel = 0,lineSkip = 0,realWidth = 0,realHeight = 0;
+	int hLabel = 0,wLabel = 0,lineSkip = 0,realWidth = 0,realHeight = 0,maxW = 0,maxH = 0;
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
 		// Zjisti reálnou velikost fontu
 		TTF_SizeText(LabelFont,(char*)pModel->pVertices[i].szVertexName,&wLabel,&hLabel);
 		lineSkip = TTF_FontLineSkip(LabelFont);
 		
-		realWidth = ((Config.uNodeRadius*2+2) > wLabel ? (Config.uNodeRadius*2+2) : wLabel+2);
-		realHeight = Config.uNodeRadius*2+2+hLabel+lineSkip+Gap;
+		realWidth = ((Config->uNodeRadius*2+3) > wLabel ? (Config->uNodeRadius*2+3) : wLabel+3);
+		realHeight = Config->uNodeRadius*2+2+hLabel+lineSkip+Gap;
+		if (realWidth > maxW) maxW = realWidth;
+		if (realHeight > maxH) maxH = realHeight;
 		
 		// Zkus vytvoøit nový povrch
-		pModel->VertexSurfaces[i] = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SRCALPHA,realWidth,realHeight,Config.uBPP,0x000000FF,0x0000FF00,0x00FF0000,0xFF000000);
+		pModel->VertexSurfaces[i] = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SRCALPHA,realWidth,realHeight,
+														 Config->uBPP,0x000000FF,0x0000FF00,0x00FF0000,0xFF000000);
 		SDL_Surface *c = pModel->VertexSurfaces[i];
 		
 		if (!c){ // Nepodaøilo se vytvoøit povrch, vše uvolni a skonèi
@@ -180,22 +183,23 @@ int CreateModelSurfaces(Model* pModel,const GraphicCfg Config)
 		  return 0;
 		}
 		
-		Uint32 inner = SDL_MapRGBA(c->format, Config.innerCircle.r,Config.innerCircle.g,Config.innerCircle.b,0xff),
-			   outter = SDL_MapRGBA(c->format, Config.outterCircle.r,Config.outterCircle.g,Config.outterCircle.b,0xff);
+		Uint32 inner = SDL_MapRGBA(c->format, Config->innerCircle.r,Config->innerCircle.g,Config->innerCircle.b,0xff),
+			   outter = SDL_MapRGBA(c->format, Config->outterCircle.r,Config->outterCircle.g,Config->outterCircle.b,0xff);
 			   
 		SDL_FillRect(c, 0, SDL_MapRGBA(c->format,0,0,0,0));
 		// Uzamkni povrch a vykresli koleèko
 		doLock(c);
-		FillCircle(c,realWidth/2,Config.uNodeRadius,Config.uNodeRadius,inner,outter);
+		FillCircle(c,realWidth/2,Config->uNodeRadius,Config->uNodeRadius,inner,outter);
 		doUnlock(c);
 		
 		// ... spoleènì s textem		
-		SDL_Surface *Text = TTF_RenderText_Solid(LabelFont,(char*)pModel->pVertices[i].szVertexName,Config.fontColor);
-		DrawSurface(Text,c,2,Config.uNodeRadius*2+2+Gap);
+		SDL_Surface *Text = TTF_RenderText_Solid(LabelFont,(char*)pModel->pVertices[i].szVertexName,Config->fontColor);
+		DrawSurface(Text,c,2,Config->uNodeRadius*2+2+Gap);
 		SDL_Flip(c);
 		
 		SDL_FreeSurface(Text);
 	}
+	Config->uMaxSurfaceW = maxW; Config->uMaxSurfaceH = maxH;
 	
 	// Zavøi font a skonèi
 	TTF_CloseFont(LabelFont);
@@ -208,10 +212,10 @@ void SetRandomLocations(Model* pModel,const GraphicCfg Config)
 	// Zkontroluj zda se nejedná o prázdný model
 	if (pModel->uCountVertices == 0 || !pModel->pVertices)
 	  return;
-	  
-	srand(time(0));
+
+	// Najdi náhodné rozmístìní v oknì
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
-		(pModel->pVertices+i)->position.x = Config.uNodeRadius+2+rand()%(Config.uScreenWidth-Config.uNodeRadius*2-10);
-		(pModel->pVertices+i)->position.y = Config.uNodeRadius+2+rand()%(Config.uScreenHeight-Config.uNodeRadius*2-Config.uFontSize-5);
+		(pModel->pVertices+i)->position.x = Config.uNodeRadius+rand()%(Config.uScreenWidth-Config.uMaxSurfaceW);
+		(pModel->pVertices+i)->position.y = Config.uNodeRadius+rand()%(Config.uScreenHeight-Config.uMaxSurfaceH);
 	}
 }

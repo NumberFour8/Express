@@ -5,35 +5,39 @@
 
 void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 {	
-	Uint32 line = SDL_MapRGB(Screen->format,Config.lineColor.r,Config.lineColor.g,Config.lineColor.b);
+	// Vymaž scénu
+	SDL_FillRect(Screen, 0, SDL_MapRGBA(Screen->format,0xff,0xff,0xff,0));
 	
+	// Vykresli všechny hrany
 	doLock(Screen);
-	for (unsigned int i = 0;i < pModel->uCountEdges;++i){
+	for (unsigned int i = 0;i < pModel->uCountEdges;++i)
 	   DrawLine(Screen,pModel->pEdges[i].pFrom->position.x+Config.uNodeRadius+5,pModel->pEdges[i].pFrom->position.y+Config.uNodeRadius+5,
-					   pModel->pEdges[i].pTo->position.x+Config.uNodeRadius+5,pModel->pEdges[i].pTo->position.y+Config.uNodeRadius+5,line);
-	}
+					   pModel->pEdges[i].pTo->position.x+Config.uNodeRadius+5,pModel->pEdges[i].pTo->position.y+Config.uNodeRadius+5,
+					   SDL_MapRGB(Screen->format,Config.lineColor.r,Config.lineColor.g,Config.lineColor.b));
 	doUnlock(Screen);
 	
-	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
+	// Vykresli všechny vrcholy
+	for (unsigned int i = 0;i < pModel->uCountVertices;++i)
 	  DrawSurface(pModel->VertexSurfaces[i],Screen,pModel->pVertices[i].position.x,pModel->pVertices[i].position.y);
-	}
 	
+	// Pøepni hlavní povrch
+	SDL_Flip(Screen);
 }
 
 int WinMain(int argc,char* argv[])
 {
-	// Chybí-li cesta ke GML souboru, vypiš pouze zprávu o použití
+	// TODO: Upravit
 	/*if (argc < 2){
 	  fprintf(stderr,"Usage: express.exe [path-to-gml-file]");
 	  exit(0);
 	}*/
 
 	SDL_Surface *screen;
-	SDL_Color blue = {0xc8,0xd8,0xff},black = {0,0,0},light_blue = {0xc8,0xd5,0xff};
 	
-	// Konfigurace zobrazení
+	// Konfigurace zobrazení, barev a velikostí
 	GraphicCfg Conf;
 	memset(&Conf,0,sizeof(GraphicCfg));
+	SDL_Color blue = {0xc8,0xd8,0xff},black = {0,0,0},light_blue = {0xc8,0xd5,0xff};
 	strcpy(Conf.szFontFile,"calibri.ttf");
 	Conf.innerCircle = blue;
 	Conf.outterCircle = Conf.fontColor = black;
@@ -41,20 +45,23 @@ int WinMain(int argc,char* argv[])
 	Conf.uFontSize = 12; Conf.uNodeRadius = 12;
 	Conf.uScreenWidth = 800; Conf.uScreenHeight = 600; Conf.uBPP = 32;
 
-    // Inicializace knihoven
+    // Inicializace SDL
     if(SDL_Init(SDL_INIT_VIDEO) < 0 ) {
         fprintf(stderr,"Couldn't initialize SDL: %s\n", SDL_GetError());
         exit(1);
     }
     atexit(SDL_Quit);
 
+	// Inicializace SDL_TTF
 	if (TTF_Init() == -1){
 		fprintf(stderr,"Couldn't initialize SDL_ttf: %s\n", TTF_GetError());
 		exit(1);
 	}
 	atexit(TTF_Quit);
 	
+	// Inicializace GML parseru a generátoru pseudonáhodných èísel
 	GML_init();
+	srand(time(0));
 	
 	// Inicializace grafiky
     screen = SDL_SetVideoMode(Conf.uScreenWidth, Conf.uScreenHeight, Conf.uBPP, SDL_HWSURFACE|SDL_DOUBLEBUF);
@@ -68,43 +75,52 @@ int WinMain(int argc,char* argv[])
 	Model MyModel;
 	memset(&MyModel,0,sizeof(Model));
 	
-	if (!BuildModel("relations.gml",&MyModel)){
+	if (!BuildModel("relations.gml",&MyModel)){ // TODO: Zmìnit na ètení z argv
 	   fprintf(stderr, "Couldn't read GML file: %s\n",argv[1]);
 	   exit(1);
-	}
-	
-	// Získej potøebné barvy
+	}	
 	
 	// Zkus vytvoøit povrchy pro vrcholy a nastav jim náhodné polohy
-	if (!CreateModelSurfaces(&MyModel,Conf)){
+	if (!CreateModelSurfaces(&MyModel,&Conf)){
 	  fprintf(stderr, "Error rendering graph surfaces.\n");
 	  FreeModel(&MyModel);
 	  exit(1);
 	}
 	SetRandomLocations(&MyModel,Conf);
 	
-	// Vycisti scenu bilou barvou
+	// Vyèisti scénu bilou barvou
 	SDL_FillRect(screen, 0, SDL_MapRGBA(screen->format,0xff,0xff,0xff,0));
 	
 	SDL_Event event; 
-	int run = 1;
+	int run = 1,tickCounter = 0;
+	float stepSize = 0.01;
+	
+	// Hlavní smyèka
 	while (run){
-        // Osetri udalosti
-		while (SDL_WaitEvent(&event)){
-            if (event.type == SDL_QUIT){
+        // Ošetøi události
+		while (SDL_PollEvent(&event)){
+            // Vypnutí aplikace
+			if (event.type == SDL_QUIT){
 			  run = 0;
 			  break;
 			}
 			
-		    if (event.type == SDL_VIDEOEXPOSE){
+			// Pøi pøekreslení okna
+		    if (event.type == SDL_VIDEOEXPOSE)
 		     RenderScene(screen,&MyModel,Conf);
-			 SDL_Flip(screen);
-			}
         }
 		
-		SDL_Delay(10); // Šetøíme CPU
+		// 20 FPS
+		if (tickCounter == 5){
+		  RenderScene(screen,&MyModel,Conf);
+		  tickCounter = 0;
+		}
+		
+		SDL_Delay(10);
+		++tickCounter;
 	}
 	
+	// Uvolni model a skonèi
 	FreeModel(&MyModel);
 	exit(0);
 }
