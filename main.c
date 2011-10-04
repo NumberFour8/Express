@@ -3,16 +3,17 @@
 #include "drawing.h"
 #include "model.h"
 
-void RenderScene(SDL_Surface* Screen,Model* pModel)
-{
+void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
+{	
+	Uint32 line = SDL_MapRGB(Screen->format,Config.lineColor.r,Config.lineColor.g,Config.lineColor.b);
 	
 	doLock(Screen);
-	
-	Uint32 blue = SDL_MapRGB(Screen->format,0xc8,0xd8,0xff),black = SDL_MapRGB(Screen->format,0,0,0);
-	FillCircle(Screen,Screen->w/2,Screen->h/2,100,blue,black);	
-	//DrawLine(Screen,Screen->w/2,Screen->h/2,Screen->w-10,Screen->h-10,black);
-	
+	for (unsigned int i = 0;i < pModel->uCountEdges;++i){
+	   DrawLine(Screen,pModel->pEdges[i].pFrom->position.x+Config.uNodeRadius+5,pModel->pEdges[i].pFrom->position.y+Config.uNodeRadius+5,
+					   pModel->pEdges[i].pTo->position.x+Config.uNodeRadius+5,pModel->pEdges[i].pTo->position.y+Config.uNodeRadius+5,line);
+	}
 	doUnlock(Screen);
+	
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
 	  DrawSurface(pModel->VertexSurfaces[i],Screen,pModel->pVertices[i].position.x,pModel->pVertices[i].position.y);
 	}
@@ -28,16 +29,17 @@ int WinMain(int argc,char* argv[])
 	}*/
 
 	SDL_Surface *screen;
-	SDL_Color blue = {0xc8,0xd8,0xff},black = {0,0,0};
+	SDL_Color blue = {0xc8,0xd8,0xff},black = {0,0,0},light_blue = {0xc8,0xd5,0xff};
 	
 	// Konfigurace zobrazení
 	GraphicCfg Conf;
 	memset(&Conf,0,sizeof(GraphicCfg));
 	strcpy(Conf.szFontFile,"calibri.ttf");
 	Conf.innerCircle = blue;
-	Conf.outterCircle = Conf.lineColor = Conf.fontColor = black;
+	Conf.outterCircle = Conf.fontColor = black;
+	Conf.lineColor = light_blue;
 	Conf.uFontSize = 12; Conf.uNodeRadius = 12;
-	Conf.uScreenWidth = 640; Conf.uScreenHeight = 480; Conf.uBPP = 32;
+	Conf.uScreenWidth = 800; Conf.uScreenHeight = 600; Conf.uBPP = 32;
 
     // Inicializace knihoven
     if(SDL_Init(SDL_INIT_VIDEO) < 0 ) {
@@ -56,6 +58,7 @@ int WinMain(int argc,char* argv[])
 	
 	// Inicializace grafiky
     screen = SDL_SetVideoMode(Conf.uScreenWidth, Conf.uScreenHeight, Conf.uBPP, SDL_HWSURFACE|SDL_DOUBLEBUF);
+	SDL_SetAlpha(screen,SDL_SRCALPHA,SDL_ALPHA_OPAQUE);
     if (screen == NULL) {
         fprintf(stderr, "Couldn't set %d x %d x %d video mode: %s\n",Conf.uScreenWidth,Conf.uScreenHeight,Conf.uBPP,SDL_GetError());
         exit(1);
@@ -65,7 +68,7 @@ int WinMain(int argc,char* argv[])
 	Model MyModel;
 	memset(&MyModel,0,sizeof(Model));
 	
-	if (!BuildModel("circle.gml",&MyModel)){
+	if (!BuildModel("relations.gml",&MyModel)){
 	   fprintf(stderr, "Couldn't read GML file: %s\n",argv[1]);
 	   exit(1);
 	}
@@ -81,7 +84,7 @@ int WinMain(int argc,char* argv[])
 	SetRandomLocations(&MyModel,Conf);
 	
 	// Vycisti scenu bilou barvou
-	SDL_FillRect(screen, 0, SDL_MapRGB(screen->format,0xff,0xff,0xff));
+	SDL_FillRect(screen, 0, SDL_MapRGBA(screen->format,0xff,0xff,0xff,0));
 	
 	SDL_Event event; 
 	int run = 1;
@@ -94,7 +97,7 @@ int WinMain(int argc,char* argv[])
 			}
 			
 		    if (event.type == SDL_VIDEOEXPOSE){
-		     RenderScene(screen,&MyModel);
+		     RenderScene(screen,&MyModel,Conf);
 			 SDL_Flip(screen);
 			}
         }

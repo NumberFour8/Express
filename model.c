@@ -170,7 +170,7 @@ int CreateModelSurfaces(Model* pModel,const GraphicCfg Config)
 		realHeight = Config.uNodeRadius*2+2+hLabel+lineSkip+Gap;
 		
 		// Zkus vytvoøit nový povrch
-		pModel->VertexSurfaces[i] = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SRCALPHA,realWidth,realHeight,Config.uBPP,0xFF000000,0x00FF0000,0x0000FF00,0x000000FF);
+		pModel->VertexSurfaces[i] = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SRCALPHA,realWidth,realHeight,Config.uBPP,0x000000FF,0x0000FF00,0x00FF0000,0xFF000000);
 		SDL_Surface *c = pModel->VertexSurfaces[i];
 		
 		if (!c){ // Nepodaøilo se vytvoøit povrch, vše uvolni a skonèi
@@ -180,18 +180,17 @@ int CreateModelSurfaces(Model* pModel,const GraphicCfg Config)
 		  return 0;
 		}
 		
-		SDL_FillRect(c, 0, SDL_MapRGBA(c->format, 0xff, 0xff, 0xff,0));
 		Uint32 inner = SDL_MapRGBA(c->format, Config.innerCircle.r,Config.innerCircle.g,Config.innerCircle.b,0xff),
 			   outter = SDL_MapRGBA(c->format, Config.outterCircle.r,Config.outterCircle.g,Config.outterCircle.b,0xff);
-		
+			   
+		SDL_FillRect(c, 0, SDL_MapRGBA(c->format,0,0,0,0));
 		// Uzamkni povrch a vykresli koleèko
 		doLock(c);
 		FillCircle(c,realWidth/2,Config.uNodeRadius,Config.uNodeRadius,inner,outter);
 		doUnlock(c);
 		
-		// ... spoleènì s textem
-		SDL_Surface *Text = TTF_RenderText_Blended(LabelFont,(char*)pModel->pVertices[i].szVertexName,Config.fontColor);
-		SDL_SetAlpha(Text,SDL_SRCALPHA,0);
+		// ... spoleènì s textem		
+		SDL_Surface *Text = TTF_RenderText_Solid(LabelFont,(char*)pModel->pVertices[i].szVertexName,Config.fontColor);
 		DrawSurface(Text,c,2,Config.uNodeRadius*2+2+Gap);
 		SDL_Flip(c);
 		
@@ -212,7 +211,7 @@ void SetRandomLocations(Model* pModel,const GraphicCfg Config)
 	  
 	srand(time(0));
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
-		(pModel->pVertices+i)->position.x = Config.uNodeRadius+2+rand()%(Config.uScreenWidth-Config.uNodeRadius*2-5);
+		(pModel->pVertices+i)->position.x = Config.uNodeRadius+2+rand()%(Config.uScreenWidth-Config.uNodeRadius*2-10);
 		(pModel->pVertices+i)->position.y = Config.uNodeRadius+2+rand()%(Config.uScreenHeight-Config.uNodeRadius*2-Config.uFontSize-5);
 	}
 }
