@@ -1,6 +1,15 @@
 #include "model.h"
 #include "drawing.h"
 
+// Funkce pro práci s vektory
+Vector2 addVectors(Vector2 A,Vector2 B)
+{ Vector2 C = {A.x+B.x,A.y+B.y}; return C; }
+Vector2 multiplyVector(Vector2 A,float B)
+{ Vector2 C = {(int)A.x*B,(int)A.y*B}; return C; }
+int magnitudeSquared(Vector2 V)
+{ return V.x*V.x+V.y*V.y; }
+
+// Získá adresu vrcholu podle ID
 Vertex* GetVertexAddressById(Vertex* pVertices,unsigned int Size,unsigned int ID)
 {
 	if (!pVertices) return NULL;
@@ -12,6 +21,7 @@ Vertex* GetVertexAddressById(Vertex* pVertices,unsigned int Size,unsigned int ID
 	return NULL;
 }
 
+// Získá adresy všech bezprostøedních sousedù
 Vertex** GetAllNeighbours(Model* pModel,Vertex* pVertex,unsigned int *uSize)
 {
 	Vertex** Ret = NULL;
@@ -32,6 +42,12 @@ Vertex** GetAllNeighbours(Model* pModel,Vertex* pVertex,unsigned int *uSize)
 	return Ret;
 }
 
+// Spoète vzdálenost dvou vrcholù (tj. délku hrany)
+float GetVertexDistance(Vertex* A,Vertex* B)
+{
+	return sqrt(pow(A->position.x-B->position.x,2)+pow(A->position.y-B->position.y,2));
+}
+
 int BuildModel(const char* szFile,Model* pModel)
 {
 	// Zkus otevøít soubor s grafem
@@ -41,7 +57,7 @@ int BuildModel(const char* szFile,Model* pModel)
 		return 0;
 	}
 	
-	// Naalokuj potøebné struktury a parsuj soubor
+	// Naalokuj potøebné struktury a oparsuj soubor
 	struct GML_stat* stat=(struct GML_stat*)malloc(sizeof(struct GML_stat));
 	stat->key_list = NULL;
 	
@@ -219,3 +235,32 @@ void SetRandomLocations(Model* pModel,const GraphicCfg Config)
 		(pModel->pVertices+i)->position.y = Config.uNodeRadius+rand()%(Config.uScreenHeight-Config.uMaxSurfaceH);
 	}
 }
+
+unsigned int SimulationStep(Model* pModel,const SimulationCfg Config)
+{
+	// Zkontroluj zda se nejedná o prázdný model
+	if (pModel->uCountVertices == 0 || !pModel->pVertices)
+	  return 0;
+	  
+	unsigned int uEnergy = 0,uNbrs = 0;
+	Vector2 totalForce;
+	Vertex *a,*b;
+	for (int i = 0;i < pModel->uCountVertices;++i){
+	  memset(&totalForce,0,sizeof(Vector2));
+	  a = (pModel->pVertices+i);
+	  
+	  /*for (int j = 0;j < pModel->uCountVertices;++j){
+	    
+	  }	  
+	  Vertex** nbr = GetAllNeighbours(pModel,c,&uNbrs);
+	  for (int j = 0;j < uNbrs;++j){
+	  
+	  }*/
+	  
+	  a->velocity = multiplyVector(addVectors(a->velocity,multiplyVector(totalForce,Config.fSimStep)),Config.fDamping);
+	  a->position = addVectors(a->position,multiplyVector(a->velocity,Config.fSimStep));
+	  uEnergy += a->mass*magnitudeSquared(a->velocity);
+	}
+	return uEnergy;
+}
+

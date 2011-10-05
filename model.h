@@ -1,5 +1,5 @@
-#ifndef _BUILDER
-#define _BUILDER
+#ifndef _MODEL
+#define _MODEL
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,7 +46,7 @@ typedef struct {
 }GraphicCfg;
 
 typedef struct {
-	float fDamping,fSpring,fSimStep;
+	float fDamping,fSpringConstant,fSimStep,fCoulombConstant,fElementaryCharge;
 }SimulationCfg;
 
 int BuildModel(const char* szFile,Model* pModel);
@@ -55,6 +55,6 @@ void FreeModel(Model* pModel);
 int CreateModelSurfaces(Model* pModel,GraphicCfg *Config);
 void SetRandomLocations(Model* pModel,const GraphicCfg Config);
 
-void DoSimulationStep(Model* pModel,const SimulationCfg Config);
+unsigned int SimulationStep(Model* pModel,const SimulationCfg Config);
 
 #endif
