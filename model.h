@@ -15,11 +15,12 @@
 #define MAX_LENGTH_LABEL 256
 
 typedef struct {
-	int x,y;
+	float x,y;
 }Vector2;
 
 typedef struct {
-	unsigned int id,mass;
+	unsigned int id;
+	float charge;
 	Vector2 position,velocity,force;
 	char szVertexName[MAX_LENGTH_LABEL];
 }Vertex;
@@ -46,7 +47,7 @@ typedef struct {
 }GraphicCfg;
 
 typedef struct {
-	float fDamping,fSpringConstant,fSimStep,fCoulombConstant,fElementaryCharge;
+	float fDamping,fSpringConstant,fSimStep,fCoulombConstant;
 }SimulationCfg;
 
 int BuildModel(const char* szFile,Model* pModel);

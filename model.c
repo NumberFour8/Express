@@ -4,10 +4,19 @@
 // Funkce pro práci s vektory
 Vector2 addVectors(Vector2 A,Vector2 B)
 { Vector2 C = {A.x+B.x,A.y+B.y}; return C; }
+
 Vector2 multiplyVector(Vector2 A,float B)
-{ Vector2 C = {(int)A.x*B,(int)A.y*B}; return C; }
+{ Vector2 C = {A.x*B,A.y*B}; return C; }
+
 int magnitudeSquared(Vector2 V)
 { return V.x*V.x+V.y*V.y; }
+
+Vector2 getDirection(Vertex* A,Vertex* B)
+{ 
+  Vector2 AB = {B->position.x-A->position.x,B->position.y-A->position.y};
+  float mag = sqrt(magnitudeSquared(AB));
+  return multiplyVector(AB,1/mag); 
+}
 
 // Získá adresu vrcholu podle ID
 Vertex* GetVertexAddressById(Vertex* pVertices,unsigned int Size,unsigned int ID)
@@ -42,10 +51,10 @@ Vertex** GetAllNeighbours(Model* pModel,Vertex* pVertex,unsigned int *uSize)
 	return Ret;
 }
 
-// Spoète vzdálenost dvou vrcholù (tj. délku hrany)
-float GetVertexDistance(Vertex* A,Vertex* B)
+// Spoète kvadrát vzdálenosti dvou vrcholù (tj. délku hrany)
+float GetVertexDistanceSquared(Vertex* A,Vertex* B)
 {
-	return sqrt(pow(A->position.x-B->position.x,2)+pow(A->position.y-B->position.y,2));
+	return pow(A->position.x-B->position.x,2)+pow(A->position.y-B->position.y,2);
 }
 
 int BuildModel(const char* szFile,Model* pModel)
@@ -83,7 +92,7 @@ int BuildModel(const char* szFile,Model* pModel)
 		  pModel->pVertices = (Vertex*)realloc((void*)pModel->pVertices,(nVertices+1)*sizeof(Vertex));
 		  Vertex* NewV = (pModel->pVertices)+nVertices;
 		  memset((void*)NewV,0,sizeof(Vertex));
-		  NewV->mass = 5; // TODO: Zatím nastavena konstantní váha vrcholu!
+		  NewV->charge = 1; // TODO: Zatím nastaven konstantní náboj vrcholu!
 		  ++nVertices;
 		  
 		  inner = ptr->value.list;
@@ -231,8 +240,8 @@ void SetRandomLocations(Model* pModel,const GraphicCfg Config)
 
 	// Najdi náhodné rozmístìní v oknì
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
-		(pModel->pVertices+i)->position.x = Config.uNodeRadius+rand()%(Config.uScreenWidth-Config.uMaxSurfaceW);
-		(pModel->pVertices+i)->position.y = Config.uNodeRadius+rand()%(Config.uScreenHeight-Config.uMaxSurfaceH);
+		(pModel->pVertices+i)->position.x = (float)(Config.uScreenWidth/4+rand()%(Config.uScreenWidth/2-Config.uMaxSurfaceW));
+		(pModel->pVertices+i)->position.y = (float)(Config.uScreenHeight/4+rand()%(Config.uScreenHeight/2-Config.uMaxSurfaceH));
 	}
 }
 
@@ -243,23 +252,35 @@ unsigned int SimulationStep(Model* pModel,const SimulationCfg Config)
 	  return 0;
 	  
 	unsigned int uEnergy = 0,uNbrs = 0;
+	float distSq = 0,CoulombForce = 0,SpringForce = 0;
+
 	Vector2 totalForce;
 	Vertex *a,*b;
+
 	for (int i = 0;i < pModel->uCountVertices;++i){
 	  memset(&totalForce,0,sizeof(Vector2));
 	  a = (pModel->pVertices+i);
 	  
-	  /*for (int j = 0;j < pModel->uCountVertices;++j){
-	    
+	  for (int j = 0;j < pModel->uCountVertices;++j){
+    	    if (i == j) continue;
+    	    b = (pModel->pVertices+j);
+	    distSq = GetVertexDistanceSquared(a,b);
+
+	    CoulombForce = Config.fCoulombConstant*b->charge*a->charge/distSq;
+	    totalForce = addVectors(totalForce,multiplyVector(getDirection(a,b),-CoulombForce));
 	  }	  
-	  Vertex** nbr = GetAllNeighbours(pModel,c,&uNbrs);
-	  for (int j = 0;j < uNbrs;++j){
 	  
-	  }*/
+	  Vertex** Neighbours = GetAllNeighbours(pModel,a,&uNbrs);
+	  for (int j = 0;j < uNbrs;++j){
+       	    b = (*Neighbours)+j;
+	    SpringForce = Config.fSpringConstant*sqrt(GetVertexDistanceSquared(a,b));
+	    totalForce = addVectors(totalForce,multiplyVector(getDirection(a,b),SpringForce));
+	  }
+	  free(Neighbours);
 	  
 	  a->velocity = multiplyVector(addVectors(a->velocity,multiplyVector(totalForce,Config.fSimStep)),Config.fDamping);
 	  a->position = addVectors(a->position,multiplyVector(a->velocity,Config.fSimStep));
-	  uEnergy += a->mass*magnitudeSquared(a->velocity);
+	  uEnergy += magnitudeSquared(a->velocity);
 	}
 	return uEnergy;
 }
