@@ -21,18 +21,18 @@ Vertex* GetVertexAddressById(Vertex* pVertices,unsigned int Size,unsigned int ID
 	return NULL;
 }
 
-// Získá adresy všech bezprostøedních sousedù
+// Získá adresy v¹ech bezprostøedních sousedù
 Vertex** GetAllNeighbours(Model* pModel,Vertex* pVertex,unsigned int *uSize)
 {
 	Vertex** Ret = NULL;
 	unsigned int nCount = 0;
 	for (unsigned int i = 0;i < pModel->uCountEdges;++i){
-		if (pModel->pEdges[i].pFrom == pVertex){ // Hrana na níž jsme zdrojovým vrcholem
+		if (pModel->pEdges[i].pFrom == pVertex){ // Hrana na ní¾ jsme zdrojovým vrcholem
 		 Ret = (Vertex**)realloc((void*)Ret,(nCount+1)*sizeof(void*));
 		 *(Ret+nCount) = pModel->pEdges[i].pTo;
 		 ++nCount;
 		}
-		else if (pModel->pEdges[i].pTo == pVertex){ // Hrana na níž jsme cílovým vrcholem
+		else if (pModel->pEdges[i].pTo == pVertex){ // Hrana na ní¾ jsme cílovým vrcholem
 		 Ret = (Vertex**)realloc((void*)Ret,(nCount+1)*sizeof(void*));
 		 *(Ret+nCount) = pModel->pEdges[i].pFrom;
 		 ++nCount;
@@ -121,11 +121,11 @@ int BuildModel(const char* szFile,Model* pModel)
 	free(stat);
 	fclose(fp);
 	
-	// ... zapiš velikosti polí
+	// ... zapi¹ velikosti polí
 	pModel->uCountVertices = (unsigned int)nVertices;
 	pModel->uCountEdges = (unsigned int)nEdges;
 	
-	// Teï už máme všechny vrcholy, proveï napojení hran na vrcholy
+	// Teï u¾ máme v¹echny vrcholy, proveï napojení hran na vrcholy
 	for (int i = 0;i < nEdges;++i){
 	  Edge* c = (pModel->pEdges+i);
 	  if (c->idTo == c->idFrom){ // Nedovol cyklické hrany!
@@ -143,16 +143,16 @@ int BuildModel(const char* szFile,Model* pModel)
 
 void FreeModel(Model* pModel)
 {
-	// Uvolni všechny vrcholy a hrany
+	// Uvolni v¹echny vrcholy a hrany
 	if (pModel->pVertices)
 	  free(pModel->pVertices);
 	if (pModel->pEdges)
 	  free(pModel->pEdges);
 	
-	// Když nejsou žádné povrchy, jsme hotovi
+	// Kdy¾ nejsou ¾ádné povrchy, jsme hotovi
 	if (!pModel->VertexSurfaces) return;
 	
-	// Jinak je tøeba uvolni všechny povrchy
+	// Jinak je tøeba uvolni v¹echny povrchy
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i)
 	   SDL_FreeSurface(pModel->VertexSurfaces[i]);
 	free(pModel->VertexSurfaces);
@@ -189,10 +189,10 @@ int CreateModelSurfaces(Model* pModel,GraphicCfg *Config)
 		
 		// Zkus vytvoøit nový povrch
 		pModel->VertexSurfaces[i] = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SRCALPHA,realWidth,realHeight,
-														 Config->uBPP,0x000000FF,0x0000FF00,0x00FF0000,0xFF000000);
+								 Config->uBPP,0x000000FF,0x0000FF00,0x00FF0000,0xFF000000);
 		SDL_Surface *c = pModel->VertexSurfaces[i];
 		
-		if (!c){ // Nepodaøilo se vytvoøit povrch, vše uvolni a skonèi
+		if (!c){ // Nepodaøilo se vytvoøit povrch, v¹e uvolni a skonèi
 		  TTF_CloseFont(LabelFont);
 		  free((void*)pModel->VertexSurfaces);
 		  pModel->VertexSurfaces = NULL;
