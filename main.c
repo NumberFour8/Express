@@ -5,10 +5,10 @@
 
 void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 {	
-	// Vymaž scénu
+	// Vyma¾ scénu
 	SDL_FillRect(Screen, 0, SDL_MapRGBA(Screen->format,0xff,0xff,0xff,0));
 	
-	// Vykresli všechny hrany
+	// Vykresli v¹echny hrany
 	doLock(Screen);
 	for (unsigned int i = 0;i < pModel->uCountEdges;++i)
 	   DrawLine(Screen,pModel->pEdges[i].pFrom->position.x+Config.uNodeRadius+5,pModel->pEdges[i].pFrom->position.y+Config.uNodeRadius+5,
@@ -16,7 +16,7 @@ void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 					   SDL_MapRGB(Screen->format,Config.lineColor.r,Config.lineColor.g,Config.lineColor.b));
 	doUnlock(Screen);
 	
-	// Vykresli všechny vrcholy
+	// Vykresli v¹echny vrcholy
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i)
 	  DrawSurface(pModel->VertexSurfaces[i],Screen,pModel->pVertices[i].position.x,pModel->pVertices[i].position.y);
 	
@@ -24,13 +24,14 @@ void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 	SDL_Flip(Screen);
 }
 
-int WinMain(int argc,char* argv[])
+int main(int argc,char* argv[])
 {
-	// TODO: Upravit
-	/*if (argc < 2){
+
+	// Zkontroluj argumenty programu
+	if (argc < 2){
 	  fprintf(stderr,"Usage: express.exe [path-to-gml-file]");
 	  exit(0);
-	}*/
+	}
 
 	SDL_Surface *screen;
 	
@@ -45,12 +46,12 @@ int WinMain(int argc,char* argv[])
 	Conf.uFontSize = 12; Conf.uNodeRadius = 12;
 	Conf.uScreenWidth = 800; Conf.uScreenHeight = 600; Conf.uBPP = 32;
 
-    // Inicializace SDL
-    if(SDL_Init(SDL_INIT_VIDEO) < 0 ) {
-        fprintf(stderr,"Couldn't initialize SDL: %s\n", SDL_GetError());
-        exit(1);
-    }
-    atexit(SDL_Quit);
+	// Inicializace SDL
+	if (SDL_Init(SDL_INIT_VIDEO) < 0 ) {
+	  fprintf(stderr,"Couldn't initialize SDL: %s\n", SDL_GetError());
+          exit(1);
+	}
+	atexit(SDL_Quit);
 
 	// Inicializace SDL_TTF
 	if (TTF_Init() == -1){
@@ -64,18 +65,19 @@ int WinMain(int argc,char* argv[])
 	srand(time(0));
 	
 	// Inicializace grafiky
-    screen = SDL_SetVideoMode(Conf.uScreenWidth, Conf.uScreenHeight, Conf.uBPP, SDL_HWSURFACE|SDL_DOUBLEBUF);
+    	screen = SDL_SetVideoMode(Conf.uScreenWidth, Conf.uScreenHeight, Conf.uBPP, SDL_HWSURFACE|SDL_DOUBLEBUF);
 	SDL_SetAlpha(screen,SDL_SRCALPHA,SDL_ALPHA_OPAQUE);
-    if (screen == NULL) {
-        fprintf(stderr, "Couldn't set %d x %d x %d video mode: %s\n",Conf.uScreenWidth,Conf.uScreenHeight,Conf.uBPP,SDL_GetError());
-        exit(1);
-    }
+
+    	if (screen == NULL) {
+	  fprintf(stderr, "Couldn't set %d x %d x %d video mode: %s\n",Conf.uScreenWidth,Conf.uScreenHeight,Conf.uBPP,SDL_GetError());
+  	  exit(1);
+    	}
 	
 	// Naèti model z parametru programu
 	Model MyModel;
 	memset(&MyModel,0,sizeof(Model));
 	
-	if (!BuildModel("relations.gml",&MyModel)){ // TODO: Zmìnit na ètení z argv
+	if (!BuildModel(argv[1],&MyModel)){
 	   fprintf(stderr, "Couldn't read GML file: %s\n",argv[1]);
 	   exit(1);
 	}	
@@ -97,18 +99,18 @@ int WinMain(int argc,char* argv[])
 	
 	// Hlavní smyèka
 	while (run){
-        // Ošetøi události
-		while (SDL_PollEvent(&event)){
-            // Vypnutí aplikace
-			if (event.type == SDL_QUIT){
-			  run = 0;
-			  break;
-			}
+	    // O¹etøi události
+	    while (SDL_PollEvent(&event)){
+            	// Vypnutí aplikace
+		if (event.type == SDL_QUIT){
+		  run = 0;
+		  break;
+		}
 			
-			// Pøi pøekreslení okna
-		    if (event.type == SDL_VIDEOEXPOSE)
-		     RenderScene(screen,&MyModel,Conf);
-        }
+		// Pøi pøekreslení okna
+		if (event.type == SDL_VIDEOEXPOSE)
+		  RenderScene(screen,&MyModel,Conf);
+	        }
 		
 		// 20 FPS
 		if (tickCounter == 5){
