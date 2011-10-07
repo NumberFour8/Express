@@ -214,6 +214,7 @@ int CreateModelSurfaces(Model* pModel,GraphicCfg *Config)
 		SDL_FillRect(c, 0, SDL_MapRGBA(c->format,0,0,0,0));
 		// Uzamkni povrch a vykresli koleèko
 		doLock(c);
+		//putpixel(c,0,0,SDL_MapRGBA(c->format,0,0,0,255));
 		FillCircle(c,realWidth/2,Config->uNodeRadius,Config->uNodeRadius,inner,outter);
 		doUnlock(c);
 		
