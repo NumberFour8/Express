@@ -9,13 +9,18 @@ void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 	SDL_FillRect(Screen, 0, SDL_MapRGBA(Screen->format,0xff,0xff,0xff,0));
 	
 	unsigned int x0,y0,x1,y1;
+	Vertex *a,*b;
 	// Vykresli v¹echny hrany
 	doLock(Screen);
 	for (unsigned int i = 0;i < pModel->uCountEdges;++i){
-	   x0 = (int)pModel->pEdges[i].pFrom->position.x+Config.uNodeRadius+5;
- 	   y0 = (int)pModel->pEdges[i].pFrom->position.y+Config.uNodeRadius+5;
-	   x1 = (int)pModel->pEdges[i].pTo->position.x+Config.uNodeRadius+5;
-	   y1 = (int)pModel->pEdges[i].pTo->position.y+Config.uNodeRadius+5;
+	   a = pModel->pEdges[i].pFrom; b = pModel->pEdges[i].pTo;
+
+	   x0 = (int)a->position.x-a->VertexSurface->w/2;
+ 	   y0 = (int)a->position.y-Config.uNodeRadius;
+
+	   x1 = (int)b->position.x-b->VertexSurface->w/2;
+	   y1 = (int)b->position.y-Config.uNodeRadius;
+
 	   if (x0 < 0) x0 = 0; if (y0 < 0) y0 = 0;
 	   if (x1 < 0) x1 = 0; if (y1 < 0) y1 = 0;
 
@@ -29,11 +34,16 @@ void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 	// Vykresli v¹echny vrcholy
 	int xCorr = 0,yCorr = 0;
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
-
-	  xCorr = (int)pModel->pVertices[i].position.x;
-	  yCorr = (int)pModel->pVertices[i].position.y;
+	  a = pModel->pVertices+i;
+   	  
+	  xCorr = (int)a->position.x-a->VertexSurface->w/2;
+	  yCorr = (int)a->position.y-Config.uNodeRadius;
 
 	  DrawSurface(pModel->pVertices[i].VertexSurface,Screen,xCorr,yCorr);
+
+	  doLock(Screen); 
+	  putpixel(Screen,(int)a->position.x,(int)a->position.y, SDL_MapRGBA(Screen->format,0,0,0,255));
+	  doUnlock(Screen);
 	}
 	
 	// Pøepni hlavní povrch

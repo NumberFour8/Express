@@ -154,7 +154,8 @@ void FreeModel(Model* pModel)
 {
 	// Je tøeba uvolnit v¹echny povrchy
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
-	   if (pModel->pVertices[i].VertexSurface) SDL_FreeSurface(pModel->pVertices[i].VertexSurface);
+	   if (pModel->pVertices[i].VertexSurface) 
+	     SDL_FreeSurface(pModel->pVertices[i].VertexSurface);
 	}
 
 	// Uvolni v¹echny vrcholy a hrany
