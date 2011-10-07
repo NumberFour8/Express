@@ -23,6 +23,7 @@ typedef struct {
 	float charge;
 	Vector2 position,velocity,force;
 	char szVertexName[MAX_LENGTH_LABEL];
+	SDL_Surface *VertexSurface;
 }Vertex;
 
 typedef struct {
@@ -36,7 +37,6 @@ typedef struct {
 	Vertex* pVertices;
 	Edge* pEdges;
 	unsigned int uCountEdges,uCountVertices;
-	SDL_Surface** VertexSurfaces;
 }Model;
 
 typedef struct {

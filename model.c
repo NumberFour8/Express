@@ -152,19 +152,16 @@ int BuildModel(const char* szFile,Model* pModel)
 
 void FreeModel(Model* pModel)
 {
+	// Je tøeba uvolnit v¹echny povrchy
+	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
+	   if (pModel->pVertices[i].VertexSurface) SDL_FreeSurface(pModel->pVertices[i].VertexSurface);
+	}
+
 	// Uvolni v¹echny vrcholy a hrany
 	if (pModel->pVertices)
 	  free(pModel->pVertices);
 	if (pModel->pEdges)
 	  free(pModel->pEdges);
-	
-	// Kdy¾ nejsou ¾ádné povrchy, jsme hotovi
-	if (!pModel->VertexSurfaces) return;
-	
-	// Jinak je tøeba uvolni v¹echny povrchy
-	for (unsigned int i = 0;i < pModel->uCountVertices;++i)
-	   SDL_FreeSurface(pModel->VertexSurfaces[i]);
-	free(pModel->VertexSurfaces);
 }
 
 int CreateModelSurfaces(Model* pModel,GraphicCfg *Config)
@@ -173,17 +170,12 @@ int CreateModelSurfaces(Model* pModel,GraphicCfg *Config)
 	if (pModel->uCountVertices == 0 || !pModel->pVertices)
 	  return 0;
 	
-	pModel->VertexSurfaces = NULL;	
 	const int Gap = 2; // Mezera mezi koleèkem a textem
 	
 	// Zkus otevøít daný font
 	TTF_Font* LabelFont = TTF_OpenFont((char*)Config->szFontFile, Config->uFontSize);
 	if (!LabelFont)
 	  return 0;
-	
-	// Naalokuj potøebný poèet povrchù pro vrcholy
-	pModel->VertexSurfaces = (SDL_Surface**)malloc(pModel->uCountVertices*sizeof(void*));
-	memset(pModel->VertexSurfaces,0,pModel->uCountVertices*sizeof(void*));
 	
 	int hLabel = 0,wLabel = 0,lineSkip = 0,realWidth = 0,realHeight = 0,maxW = 0,maxH = 0;
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
@@ -197,14 +189,12 @@ int CreateModelSurfaces(Model* pModel,GraphicCfg *Config)
 		if (realHeight > maxH) maxH = realHeight;
 		
 		// Zkus vytvoøit nový povrch
-		pModel->VertexSurfaces[i] = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SRCALPHA,realWidth,realHeight,
-								 Config->uBPP,0x000000FF,0x0000FF00,0x00FF0000,0xFF000000);
-		SDL_Surface *c = pModel->VertexSurfaces[i];
+		pModel->pVertices[i].VertexSurface = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SRCALPHA,realWidth,realHeight,
+								 	   Config->uBPP,0x000000FF,0x0000FF00,0x00FF0000,0xFF000000);
+		SDL_Surface *c = pModel->pVertices[i].VertexSurface;
 		
 		if (!c){ // Nepodaøilo se vytvoøit povrch, v¹e uvolni a skonèi
 		  TTF_CloseFont(LabelFont);
-		  free((void*)pModel->VertexSurfaces);
-		  pModel->VertexSurfaces = NULL;
 		  return 0;
 		}
 		

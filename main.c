@@ -33,7 +33,7 @@ void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 	  xCorr = (int)pModel->pVertices[i].position.x;
 	  yCorr = (int)pModel->pVertices[i].position.y;
 
-	  DrawSurface(pModel->VertexSurfaces[i],Screen,xCorr,yCorr);
+	  DrawSurface(pModel->pVertices[i].VertexSurface,Screen,xCorr,yCorr);
 	}
 	
 	// Pøepni hlavní povrch
