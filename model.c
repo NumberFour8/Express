@@ -11,11 +11,12 @@ Vector2 multiplyVector(Vector2 A,float B)
 int magnitudeSquared(Vector2 V)
 { return V.x*V.x+V.y*V.y; }
 
+// Zjisti smìrový jednotkový vektor spojnice dvou vrcholù
 Vector2 getDirection(Vertex* A,Vertex* B)
 { 
-  Vector2 AB = {B->position.x-A->position.x,B->position.y-A->position.y};
-  float mag = sqrt(magnitudeSquared(AB));
-  return multiplyVector(AB,1/mag); 
+	Vector2 AB = {B->position.x-A->position.x,B->position.y-A->position.y};
+	float mag = sqrt(magnitudeSquared(AB));
+	return multiplyVector(AB,1/mag); 
 }
 
 // Získá adresu vrcholu podle ID
@@ -28,27 +29,6 @@ Vertex* GetVertexAddressById(Vertex* pVertices,unsigned int Size,unsigned int ID
 	     return (pVertices+i);
 	}
 	return NULL;
-}
-
-// Získá adresy v¹ech bezprostøedních sousedù
-Vertex** GetAllNeighbours(Model* pModel,Vertex* pVertex,unsigned int *uSize)
-{
-	Vertex** Ret = NULL;
-	unsigned int nCount = 0;
-	for (unsigned int i = 0;i < pModel->uCountEdges;++i){
-		if (pModel->pEdges[i].pFrom == pVertex){ // Hrana na ní¾ jsme zdrojovým vrcholem
-		 Ret = (Vertex**)realloc((void*)Ret,(nCount+1)*sizeof(void*));
-		 *(Ret+nCount) = pModel->pEdges[i].pTo;
-		 ++nCount;
-		}
-		else if (pModel->pEdges[i].pTo == pVertex){ // Hrana na ní¾ jsme cílovým vrcholem
-		 Ret = (Vertex**)realloc((void*)Ret,(nCount+1)*sizeof(void*));
-		 *(Ret+nCount) = pModel->pEdges[i].pFrom;
-		 ++nCount;
-		}
-	}
-	*uSize = nCount;
-	return Ret;
 }
 
 // Spoète kvadrát vzdálenosti dvou vrcholù (tj. délku hrany)
@@ -79,6 +59,7 @@ int BuildModel(const char* szFile,Model* pModel)
 		return 0;
 	}
 	
+	// Zinicializuj promìnné parseru
 	struct GML_pair* ptr = list,*inner = NULL;
 	int nEdges = 0,nVertices = 0;
 	memset((void*)pModel,0,sizeof(Model));
@@ -95,6 +76,7 @@ int BuildModel(const char* szFile,Model* pModel)
 		  NewV->charge = 1;
 		  ++nVertices;
 		  
+		  // Èti hodnoty pøíslu¹ící k vrcholu
 		  inner = ptr->value.list;
 		  for (;inner != NULL;inner=inner->next){
 			if (strcmp(inner->key,"id") == 0 && inner->kind == GML_INT)
@@ -111,6 +93,7 @@ int BuildModel(const char* szFile,Model* pModel)
 		  memset((void*)NewE,0,sizeof(Edge));
 		  ++nEdges;
 		  
+		  // Èti hodnoty pøíslu¹ící k hranì
 		  inner = ptr->value.list;
 		  for (;inner != NULL;inner=inner->next){
 			if (strcmp(inner->key,"source") == 0 && inner->kind == GML_INT)
@@ -184,6 +167,7 @@ int CreateModelSurfaces(Model* pModel,GraphicCfg *Config)
 		TTF_SizeText(LabelFont,(char*)pModel->pVertices[i].szVertexName,&wLabel,&hLabel);
 		lineSkip = TTF_FontLineSkip(LabelFont);
 		
+		// Spoèti reálnou velikost povrchu a souèastnì hledej jejich maximum
 		realWidth = ((Config->uNodeRadius*2+3) > wLabel ? (Config->uNodeRadius*2+3) : wLabel+3);
 		realHeight = Config->uNodeRadius*2+2+hLabel+lineSkip+Gap;
 		if (realWidth > maxW) maxW = realWidth;
@@ -249,6 +233,7 @@ unsigned int SimulationStep(Model* pModel,const SimulationCfg Config)
 	Vector2 totalForce;
 	Vertex *a,*b;
 
+	// Procházej v¹echny dvojice vrcholù
 	for (int i = 0;i < pModel->uCountVertices;++i){
 	  memset(&totalForce,0,sizeof(Vector2));
 	  a = (pModel->pVertices+i);
@@ -258,22 +243,27 @@ unsigned int SimulationStep(Model* pModel,const SimulationCfg Config)
     	    b = (pModel->pVertices+j);
 	    distSq = GetVertexDistanceSquared(a,b);
 
+	    // Spoèti columbickou sílu
 	    CoulombForce = Config.fCoulombConstant*b->charge*a->charge/distSq;
 	    totalForce = addVectors(totalForce,multiplyVector(getDirection(a,b),-CoulombForce));
+
+	    // Najdi spoleèné hrany a spoèti sílu pru¾nosti
+	    for (int k = 0;k < pModel->uCountEdges;++k){
+		if (pModel->pEdges[k].pFrom == a && pModel->pEdges[k].pTo == b ||
+		    pModel->pEdges[k].pTo == a && pModel->pEdges[k].pFrom == b){
+		  SpringForce = Config.fSpringConstant*sqrt(distSq);
+	    	  totalForce = addVectors(totalForce,multiplyVector(getDirection(a,b),SpringForce));    
+		}
+	    }
 	  }	  
 	  
-	  Vertex** Neighbours = GetAllNeighbours(pModel,a,&uNbrs);
-	  for (int j = 0;j < uNbrs;++j){
-       	    b = (*Neighbours)+j;
-	    SpringForce = Config.fSpringConstant*sqrt(GetVertexDistanceSquared(a,b));
-	    totalForce = addVectors(totalForce,multiplyVector(getDirection(a,b),SpringForce));
-	  }
-	  free(Neighbours);
-	  
+	  // Integruj eulerovsky a spoèti kinetickou energii
 	  a->velocity = multiplyVector(addVectors(a->velocity,multiplyVector(totalForce,Config.fSimStep)),Config.fDamping);
 	  a->position = addVectors(a->position,multiplyVector(a->velocity,Config.fSimStep));
-	  uEnergy += magnitudeSquared(a->velocity);
+
+	  uEnergy += magnitudeSquared(a->velocity); // Hmotnost èástic je jednotková
 	}
+
 	return uEnergy;
 }
 

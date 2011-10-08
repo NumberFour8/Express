@@ -54,8 +54,6 @@ int main(int argc,char* argv[])
 	  fprintf(stderr,"Usage: express [path-to-gml-file]\n");
 	  exit(0);
 	}
-
-	SDL_Surface *screen;
 	
 	// Konfigurace zobrazení, barev a velikostí
 	GraphicCfg Conf;
@@ -67,8 +65,18 @@ int main(int argc,char* argv[])
 	Conf.lineColor = light_blue;
 	Conf.uFontSize = 12; Conf.uNodeRadius = 12;
 	Conf.uScreenWidth = 800; Conf.uScreenHeight = 600; Conf.uBPP = 32;
+	///////////////////////////////////////////////////////////////////////////////////////
+
+	// Nastavení fyzikálních konstant simulace
+	SimulationCfg SimConf;
+	SimConf.fDamping = 0.5;
+	SimConf.fSpringConstant = 50;
+	SimConf.fSimStep = 0.02;
+	SimConf.fCoulombConstant = 8.70E+6;
+	///////////////////////////////////////////////////////////////////////////////////////
 
 	// Inicializace SDL
+	SDL_Surface *screen;
 	if (SDL_Init(SDL_INIT_VIDEO) < 0 ) {
 	  fprintf(stderr,"Couldn't initialize SDL: %s\n", SDL_GetError());
           exit(1);
@@ -112,13 +120,6 @@ int main(int argc,char* argv[])
 	  exit(1);
 	}
 	SetRandomLocations(&MyModel,Conf);
-	
-	// Nastavení fyzikálních konstant simulace
-	SimulationCfg SimConf;
-	SimConf.fDamping = 0.5;
-	SimConf.fSpringConstant = 45;
-	SimConf.fSimStep = 0.02;
-	SimConf.fCoulombConstant = 8.70E+6;
 
 	// Vyèisti scénu bílou barvou
 	SDL_FillRect(screen, 0, SDL_MapRGBA(screen->format,0xff,0xff,0xff,0));
