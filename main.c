@@ -15,11 +15,11 @@ void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 	for (unsigned int i = 0;i < pModel->uCountEdges;++i){
 	   a = pModel->pEdges[i].pFrom; b = pModel->pEdges[i].pTo;
 
-	   x0 = (int)a->position.x-a->VertexSurface->w/2;
- 	   y0 = (int)a->position.y-Config.uNodeRadius;
+	   x0 = (int)a->position.x;
+ 	   y0 = (int)a->position.y;
 
-	   x1 = (int)b->position.x-b->VertexSurface->w/2;
-	   y1 = (int)b->position.y-Config.uNodeRadius;
+	   x1 = (int)b->position.x;
+	   y1 = (int)b->position.y;
 
 	   if (x0 < 0) x0 = 0; if (y0 < 0) y0 = 0;
 	   if (x1 < 0) x1 = 0; if (y1 < 0) y1 = 0;
@@ -40,10 +40,6 @@ void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 	  yCorr = (int)a->position.y-Config.uNodeRadius;
 
 	  DrawSurface(pModel->pVertices[i].VertexSurface,Screen,xCorr,yCorr);
-
-	  doLock(Screen); 
-	  putpixel(Screen,(int)a->position.x,(int)a->position.y, SDL_MapRGBA(Screen->format,0,0,0,255));
-	  doUnlock(Screen);
 	}
 	
 	// Pøepni hlavní povrch

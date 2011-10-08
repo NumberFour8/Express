@@ -92,7 +92,7 @@ int BuildModel(const char* szFile,Model* pModel)
 		  pModel->pVertices = (Vertex*)realloc((void*)pModel->pVertices,(nVertices+1)*sizeof(Vertex));
 		  Vertex* NewV = (pModel->pVertices)+nVertices;
 		  memset((void*)NewV,0,sizeof(Vertex));
-		  NewV->charge = 1; // TODO: Zatím nastaven konstantní náboj vrcholu!
+		  NewV->charge = 1;
 		  ++nVertices;
 		  
 		  inner = ptr->value.list;
