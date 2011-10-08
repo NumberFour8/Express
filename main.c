@@ -59,7 +59,7 @@ int main(int argc,char* argv[])
 
 	// Zkontroluj argumenty programu
 	if (argc < 3){
-	  fprintf(stderr,"Usage: express [path-to-gml-file] [energetic minimum]\nLuká¹ Pohanka 2011");
+	  fprintf(stderr,"Usage: express [path-to-gml-file] [energetic minimum] [manual-motion]\nLuká¹ Pohanka 2011");
 	  exit(0);
 	}
 
@@ -135,10 +135,12 @@ int main(int argc,char* argv[])
 	SDL_FillRect(MyScreen, 0, SDL_MapRGBA(MyScreen->format,0xff,0xff,0xff,0));
 
 	SDL_Event event; 
-	int run = 1,framesCounter = 0,motionAllowed = 1;
+	int run = 1,framesCounter = 0,motionAllowed = 1,
+	    manualMotion = (argc > 3 && strcmp(argv[3],"1") == 0);
+
 	float waitTime = 0.01;
 	unsigned int lastTick = SDL_GetTicks();
-	
+
 	// Hlavní smyèka
 	while (run){
 	    // O¹etøi události
@@ -148,15 +150,18 @@ int main(int argc,char* argv[])
 		  run = 0;
 		  break;
 		}		
-		// Pøi pøekreslení okna obnovuj scénu
-		if (event.type == SDL_VIDEOEXPOSE)
-		  RenderScene(MyScreen,&MyModel,GrConf);
+		else if (event.type == SDL_VIDEOEXPOSE) 
+		  // Pøi pøekreslení okna obnovuj scénu
+		  RenderScene(MyScreen,&MyModel,GrConf); 
+		else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE && manualMotion)
+		  // Kdy¾ je povolen manuální posuv, posouvej simulaci stiskem mezerníku
+		  motionAllowed = SimulationStep(&MyModel,SimConf) > SimConf.uMinimumKineticEnergy; 
 	    }
 
 	    // Pokud energie nespadla pod povolené minimum, provádìj simulaci
 	    if (motionAllowed){
 	      // Posuò simulaci
-	      if (SDL_GetTicks()-lastTick >= SimConf.fSimStep*1000){
+	      if (SDL_GetTicks()-lastTick >= SimConf.fSimStep*1000 && !manualMotion){
 		motionAllowed = SimulationStep(&MyModel,SimConf) > SimConf.uMinimumKineticEnergy; 
 	        lastTick = SDL_GetTicks();		
 	      }
