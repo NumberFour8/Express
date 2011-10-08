@@ -1,3 +1,6 @@
+// Definuje funkce pro práci s modelem a simulací
+//====================================================
+
 #ifndef _MODEL
 #define _MODEL
 

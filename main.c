@@ -1,8 +1,16 @@
+/*
+	Zápoètový program pro pøedmìt Programování v C++ 1
+	Luká¹ Pohanka, 2011
+	pohanluk@fjfi.cvut.cz
+	Fakulta Jaderná a Fyzikálnì In¾enýrská ÈVUT
+*/
+
 #include <stdio.h>
 
 #include "drawing.h"
 #include "model.h"
 
+// Pøekresluje scénu
 void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 {	
 	// Vyma¾ scénu
@@ -51,7 +59,7 @@ int main(int argc,char* argv[])
 
 	// Zkontroluj argumenty programu
 	if (argc < 3){
-	  fprintf(stderr,"Usage: express [path-to-gml-file] [energetic minimum]\n");
+	  fprintf(stderr,"Usage: express [path-to-gml-file] [energetic minimum]\nLuká¹ Pohanka 2011");
 	  exit(0);
 	}
 

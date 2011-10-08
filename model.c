@@ -37,6 +37,7 @@ float GetVertexDistanceSquared(Vertex* A,Vertex* B)
 	return pow(A->position.x-B->position.x,2)+pow(A->position.y-B->position.y,2);
 }
 
+// Sestaví model podle daného GML souboru
 int BuildModel(const char* szFile,Model* pModel)
 {
 	// Zkus otevøít soubor s grafem
@@ -52,6 +53,7 @@ int BuildModel(const char* szFile,Model* pModel)
 	
 	struct GML_pair* list = GML_parser(fp, stat, 0);
 	
+	// Zkontroluje, zda nenastala chyba pøi parsování
 	if (stat->err.err_num != GML_OK){
 	  fprintf(stderr,"Error reading GML file on %d : %d\n", stat->err.line, stat->err.column);
 	  fclose(fp);
@@ -128,9 +130,9 @@ int BuildModel(const char* szFile,Model* pModel)
 	for (int i = 0;i < nEdges;++i){
 	  Edge* c = (pModel->pEdges+i);
 	  if (c->idTo == c->idFrom){ // Nedovol cyklické hrany!
-		fprintf(stderr,"Invalid GML file - cyclic edges are not supported!\n");
-		FreeModel(pModel);
-		return 0;
+	    fprintf(stderr,"Invalid GML file - cyclic edges are not supported!\n");
+	    FreeModel(pModel);
+	    return 0;
 	  }
 	  // Najdi adresy vrcholù podle jejich ID
 	  c->pTo = GetVertexAddressById(pModel->pVertices,nVertices,c->idTo);
@@ -140,6 +142,7 @@ int BuildModel(const char* szFile,Model* pModel)
 	return 1;
 }
 
+// Uvolní pøeètený model z pamìti
 void FreeModel(Model* pModel)
 {
 	// Je tøeba uvolnit v¹echny povrchy
@@ -155,13 +158,14 @@ void FreeModel(Model* pModel)
 	  free(pModel->pEdges);
 }
 
+// Vytvoøí povrchy s vrcholy a jejich názvy
 int CreateModelSurfaces(Model* pModel,GraphicCfg *Config)
 {
 	// Zkontroluj zda se nejedná o prázdný model
 	if (pModel->uCountVertices == 0 || !pModel->pVertices)
 	  return 0;
 	
-	const int Gap = 2; // Mezera mezi koleèkem a textem
+	const int Gap = 2; // Mezera mezi kruhem a textem
 	
 	// Zkus otevøít daný font
 	TTF_Font* LabelFont = TTF_OpenFont((char*)Config->szFontFile, Config->uFontSize);
@@ -193,13 +197,13 @@ int CreateModelSurfaces(Model* pModel,GraphicCfg *Config)
 		  return 0;
 		}
 		
-		Uint32 inner = SDL_MapRGBA(c->format, Config->innerCircle.r,Config->innerCircle.g,Config->innerCircle.b,0xff),
-			   outter = SDL_MapRGBA(c->format, Config->outterCircle.r,Config->outterCircle.g,Config->outterCircle.b,0xff);
-			   
+		// Vyèisti povrch a namapuj barvy
 		SDL_FillRect(c, 0, SDL_MapRGBA(c->format,0,0,0,0));
+		unsigned int inner = SDL_MapRGBA(c->format, Config->innerCircle.r,Config->innerCircle.g,Config->innerCircle.b,0xff),
+			     outter = SDL_MapRGBA(c->format, Config->outterCircle.r,Config->outterCircle.g,Config->outterCircle.b,0xff);
+
 		// Uzamkni povrch a vykresli koleèko
 		doLock(c);
-		//putpixel(c,0,0,SDL_MapRGBA(c->format,0,0,0,255));
 		FillCircle(c,realWidth/2,Config->uNodeRadius,Config->uNodeRadius,inner,outter);
 		doUnlock(c);
 		
@@ -218,6 +222,7 @@ int CreateModelSurfaces(Model* pModel,GraphicCfg *Config)
 	return 1;
 }
 
+// Rozestaví vrcholy na náhodné pozice
 void SetRandomLocations(Model* pModel,const GraphicCfg Config)
 {
 	// Zkontroluj zda se nejedná o prázdný model
@@ -226,11 +231,12 @@ void SetRandomLocations(Model* pModel,const GraphicCfg Config)
 
 	// Najdi náhodné rozmístìní v oknì
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
-		(pModel->pVertices+i)->position.x = (float)(Config.uScreenWidth/4+rand()%(Config.uScreenWidth/2-Config.uMaxSurfaceW));
-		(pModel->pVertices+i)->position.y = (float)(Config.uScreenHeight/4+rand()%(Config.uScreenHeight/2-Config.uMaxSurfaceH));
+	   (pModel->pVertices+i)->position.x = (float)(Config.uScreenWidth/4+rand()%(Config.uScreenWidth/2-Config.uMaxSurfaceW));
+	   (pModel->pVertices+i)->position.y = (float)(Config.uScreenHeight/4+rand()%(Config.uScreenHeight/2-Config.uMaxSurfaceH));
 	}
 }
 
+// Provede jeden simulaèní krok
 unsigned int SimulationStep(Model* pModel,const SimulationCfg Config)
 {
 	// Zkontroluj zda se nejedná o prázdný model
@@ -267,11 +273,12 @@ unsigned int SimulationStep(Model* pModel,const SimulationCfg Config)
 	    }
 	  }	  
 	  
-	  // Integruj eulerovsky a spoèti kinetickou energii
+	  // Integruj eulerovsky
 	  a->velocity = multiplyVector(addVectors(a->velocity,multiplyVector(totalForce,Config.fSimStep)),Config.fDamping);
 	  a->position = addVectors(a->position,multiplyVector(a->velocity,Config.fSimStep));
 
-	  uEnergy += magnitudeSquared(a->velocity); // Hmotnost èástic je jednotková
+	  // Spoèti a vra» kinetickou energii systému (hmotnost èásti je jednotková)
+	  uEnergy += magnitudeSquared(a->velocity);
 	}
 
 	return uEnergy;

@@ -1,3 +1,6 @@
+// Definuje základní kreslící funkce pomocí SDL
+//====================================================
+
 #ifndef _DRAWING
 #define _DRAWING
 
