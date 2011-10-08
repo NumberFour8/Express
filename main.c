@@ -66,12 +66,12 @@ int main(int argc,char* argv[])
 	// Konfigurace zobrazení, barev a velikostí
 	GraphicCfg GrConf;
 	memset(&GrConf,0,sizeof(GraphicCfg));
-	SDL_Color blue = {0xc8,0xd8,0xff},black = {0,0,0},light_blue = {0xc8,0xd5,0xff};
+	SDL_Color inC = {0x1f,0xde,0x5b},outC = {0,0,0},lineC = {0x51,0x8c,0xf0};
 	
 	strcpy(GrConf.szFontFile,"calibri.ttf");
-	GrConf.innerCircle = blue;
-	GrConf.outterCircle = GrConf.fontColor = black;
-	GrConf.lineColor = light_blue;
+	GrConf.innerCircle = inC;
+	GrConf.outterCircle = GrConf.fontColor = outC;
+	GrConf.lineColor = lineC;
 	GrConf.uFontSize = 12; GrConf.uNodeRadius = 12;
 	GrConf.uScreenWidth = 800; GrConf.uScreenHeight = 600; GrConf.uBPP = 32;
 	///////////////////////////////////////////////////////////////////////////////////////
