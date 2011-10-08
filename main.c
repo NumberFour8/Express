@@ -6,7 +6,7 @@
 void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 {	
 	// Vyma¾ scénu
-	SDL_FillRect(Screen, 0, SDL_MapRGBA(Screen->format,0xff,0xff,0xff,0));
+	SDL_FillRect(Screen,0,SDL_MapRGBA(Screen->format,0xff,0xff,0xff,0));
 	
 	int x0,y0,x1,y1;
 	Vertex *a,*b;
@@ -50,8 +50,8 @@ int main(int argc,char* argv[])
 {
 
 	// Zkontroluj argumenty programu
-	if (argc < 2){
-	  fprintf(stderr,"Usage: express [path-to-gml-file]\n");
+	if (argc < 3){
+	  fprintf(stderr,"Usage: express [path-to-gml-file] [energetic minimum]\n");
 	  exit(0);
 	}
 	
@@ -74,12 +74,12 @@ int main(int argc,char* argv[])
 	SimConf.fSpringConstant = 50;
 	SimConf.fSimStep = 0.02;
 	SimConf.fCoulombConstant = 8.70E+6;
-	SimConf.uMinimumKineticEnergy = 100;
+	SimConf.uMinimumKineticEnergy = atoi(argv[2]);
 	///////////////////////////////////////////////////////////////////////////////////////
 
 	// Inicializace SDL
-	SDL_Surface *screen;
-	if (SDL_Init(SDL_INIT_VIDEO) < 0 ) {
+	SDL_Surface *MyScreen;
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 	  fprintf(stderr,"Couldn't initialize SDL: %s\n", SDL_GetError());
           exit(1);
 	}
@@ -97,10 +97,10 @@ int main(int argc,char* argv[])
 	srand(time(0));
 	
 	// Inicializace grafiky
-    	screen = SDL_SetVideoMode(GrConf.uScreenWidth,GrConf.uScreenHeight,GrConf.uBPP,SDL_HWSURFACE|SDL_DOUBLEBUF);
-	SDL_SetAlpha(screen,SDL_SRCALPHA,SDL_ALPHA_OPAQUE);
+    	MyScreen = SDL_SetVideoMode(GrConf.uScreenWidth,GrConf.uScreenHeight,GrConf.uBPP,SDL_HWSURFACE|SDL_DOUBLEBUF);
+	SDL_SetAlpha(MyScreen,SDL_SRCALPHA,SDL_ALPHA_OPAQUE);
 
-    	if (screen == NULL) {
+    	if (MyScreen == NULL) {
 	  fprintf(stderr, "Couldn't set %d x %d x %d video mode: %s\n",GrConf.uScreenWidth,GrConf.uScreenHeight,GrConf.uBPP,SDL_GetError());
   	  exit(1);
     	}
@@ -124,7 +124,7 @@ int main(int argc,char* argv[])
 	SetRandomLocations(&MyModel,GrConf);
 
 	// Vyèisti scénu bílou barvou
-	SDL_FillRect(screen, 0, SDL_MapRGBA(screen->format,0xff,0xff,0xff,0));
+	SDL_FillRect(MyScreen, 0, SDL_MapRGBA(MyScreen->format,0xff,0xff,0xff,0));
 
 	SDL_Event event; 
 	int run = 1,framesCounter = 0,motionAllowed = 1;
@@ -142,7 +142,7 @@ int main(int argc,char* argv[])
 		}		
 		// Pøi pøekreslení okna obnovuj scénu
 		if (event.type == SDL_VIDEOEXPOSE)
-		  RenderScene(screen,&MyModel,GrConf);
+		  RenderScene(MyScreen,&MyModel,GrConf);
 	    }
 
 	    // Pokud energie nespadla pod povolené minimum, provádìj simulaci
@@ -155,7 +155,7 @@ int main(int argc,char* argv[])
 	    
 	      // Pøekresli scénu (5 ~ 20 FPS)
 	      if (framesCounter == 3){
-	        RenderScene(screen,&MyModel,GrConf);
+	        RenderScene(MyScreen,&MyModel,GrConf);
 	        framesCounter = 0;
 	      }
 	    }
