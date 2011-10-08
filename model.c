@@ -118,7 +118,7 @@ int BuildModel(const char* szFile,Model* pModel)
 	pModel->uCountEdges = (unsigned int)nEdges;
 
 	// Zkontroluj jestli byl pøeèten alespoò jeden vrchol
-	if (uCountVertices == 0){
+	if (nVertices == 0){
 	  fprintf(stderr,"No vertices read from the GML file. No simulation possible.\n");	
 	  FreeModel(pModel);
 	  return 0;
