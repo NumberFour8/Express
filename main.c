@@ -54,7 +54,7 @@ int main(int argc,char* argv[])
 	  fprintf(stderr,"Usage: express [path-to-gml-file] [energetic minimum]\n");
 	  exit(0);
 	}
-	
+
 	// Konfigurace zobrazení, barev a velikostí
 	GraphicCfg GrConf;
 	memset(&GrConf,0,sizeof(GraphicCfg));

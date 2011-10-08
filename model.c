@@ -42,8 +42,8 @@ int BuildModel(const char* szFile,Model* pModel)
 	// Zkus otevøít soubor s grafem
 	FILE* fp = fopen(szFile,"r");
 	if (!fp){
-		fprintf(stderr,"Unable to open %s for reading.\n",szFile);
-		return 0;
+	  fprintf(stderr,"Unable to open %s for reading.\n",szFile);
+	  return 0;
 	}
 	
 	// Naalokuj potøebné struktury a oparsuj soubor
@@ -53,10 +53,10 @@ int BuildModel(const char* szFile,Model* pModel)
 	struct GML_pair* list = GML_parser(fp, stat, 0);
 	
 	if (stat->err.err_num != GML_OK){
-		fprintf(stderr,"Error reading GML file on %d : %d\n", stat->err.line, stat->err.column);
-		fclose(fp);
-		free(stat);
-		return 0;
+	  fprintf(stderr,"Error reading GML file on %d : %d\n", stat->err.line, stat->err.column);
+	  fclose(fp);
+	  free(stat);
+	  return 0;
 	}
 	
 	// Zinicializuj promìnné parseru
@@ -116,12 +116,19 @@ int BuildModel(const char* szFile,Model* pModel)
 	// ... zapi¹ velikosti polí
 	pModel->uCountVertices = (unsigned int)nVertices;
 	pModel->uCountEdges = (unsigned int)nEdges;
+
+	// Zkontroluj jestli byl pøeèten alespoò jeden vrchol
+	if (uCountVertices == 0){
+	  fprintf(stderr,"No vertices read from the GML file. No simulation possible.\n");	
+	  FreeModel(pModel);
+	  return 0;
+	}
 	
 	// Teï u¾ máme v¹echny vrcholy, proveï napojení hran na vrcholy
 	for (int i = 0;i < nEdges;++i){
 	  Edge* c = (pModel->pEdges+i);
 	  if (c->idTo == c->idFrom){ // Nedovol cyklické hrany!
-		fprintf(stderr,"Invalid GML file - cyclic edges are not supported!");
+		fprintf(stderr,"Invalid GML file - cyclic edges are not supported!\n");
 		FreeModel(pModel);
 		return 0;
 	  }
@@ -158,8 +165,10 @@ int CreateModelSurfaces(Model* pModel,GraphicCfg *Config)
 	
 	// Zkus otevøít daný font
 	TTF_Font* LabelFont = TTF_OpenFont((char*)Config->szFontFile, Config->uFontSize);
-	if (!LabelFont)
+	if (!LabelFont){
+	  fprintf(stderr,"Cannot open font file %s\n",(char*)Config->szFontFile);
 	  return 0;
+	}
 	
 	int hLabel = 0,wLabel = 0,lineSkip = 0,realWidth = 0,realHeight = 0,maxW = 0,maxH = 0;
 	for (unsigned int i = 0;i < pModel->uCountVertices;++i){
@@ -180,6 +189,7 @@ int CreateModelSurfaces(Model* pModel,GraphicCfg *Config)
 		
 		if (!c){ // Nepodaøilo se vytvoøit povrch, v¹e uvolni a skonèi
 		  TTF_CloseFont(LabelFont);
+		  fprintf(stderr,"Vertex surface allocation failed.\n");
 		  return 0;
 		}
 		
