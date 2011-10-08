@@ -8,7 +8,7 @@ void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 	// Vyma¾ scénu
 	SDL_FillRect(Screen, 0, SDL_MapRGBA(Screen->format,0xff,0xff,0xff,0));
 	
-	unsigned int x0,y0,x1,y1;
+	int x0,y0,x1,y1;
 	Vertex *a,*b;
 
 	// Vykresli v¹echny hrany
@@ -16,9 +16,11 @@ void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 	for (unsigned int i = 0;i < pModel->uCountEdges;++i){
 	   a = pModel->pEdges[i].pFrom; b = pModel->pEdges[i].pTo;
 
+	   // Zaokrouhli vektory na celá èísla
 	   x0 = (int)a->position.x;  y0 = (int)a->position.y;
 	   x1 = (int)b->position.x;  y1 = (int)b->position.y;
 
+	   // O¹etøi pozice mimo kreslitelnou oblast
 	   if (x0 < 0) x0 = 0; if (y0 < 0) y0 = 0;
 	   if (x1 < 0) x1 = 0; if (y1 < 0) y1 = 0;
 
@@ -54,15 +56,16 @@ int main(int argc,char* argv[])
 	}
 	
 	// Konfigurace zobrazení, barev a velikostí
-	GraphicCfg Conf;
-	memset(&Conf,0,sizeof(GraphicCfg));
+	GraphicCfg GrConf;
+	memset(&GrConf,0,sizeof(GraphicCfg));
 	SDL_Color blue = {0xc8,0xd8,0xff},black = {0,0,0},light_blue = {0xc8,0xd5,0xff};
-	strcpy(Conf.szFontFile,"calibri.ttf");
-	Conf.innerCircle = blue;
-	Conf.outterCircle = Conf.fontColor = black;
-	Conf.lineColor = light_blue;
-	Conf.uFontSize = 12; Conf.uNodeRadius = 12;
-	Conf.uScreenWidth = 800; Conf.uScreenHeight = 600; Conf.uBPP = 32;
+	
+	strcpy(GrConf.szFontFile,"calibri.ttf");
+	GrConf.innerCircle = blue;
+	GrConf.outterCircle = GrConf.fontColor = black;
+	GrConf.lineColor = light_blue;
+	GrConf.uFontSize = 12; GrConf.uNodeRadius = 12;
+	GrConf.uScreenWidth = 800; GrConf.uScreenHeight = 600; GrConf.uBPP = 32;
 	///////////////////////////////////////////////////////////////////////////////////////
 
 	// Nastavení fyzikálních konstant simulace
@@ -94,11 +97,11 @@ int main(int argc,char* argv[])
 	srand(time(0));
 	
 	// Inicializace grafiky
-    	screen = SDL_SetVideoMode(Conf.uScreenWidth, Conf.uScreenHeight, Conf.uBPP, SDL_HWSURFACE|SDL_DOUBLEBUF);
+    	screen = SDL_SetVideoMode(GrConf.uScreenWidth,GrConf.uScreenHeight,GrConf.uBPP,SDL_HWSURFACE|SDL_DOUBLEBUF);
 	SDL_SetAlpha(screen,SDL_SRCALPHA,SDL_ALPHA_OPAQUE);
 
     	if (screen == NULL) {
-	  fprintf(stderr, "Couldn't set %d x %d x %d video mode: %s\n",Conf.uScreenWidth,Conf.uScreenHeight,Conf.uBPP,SDL_GetError());
+	  fprintf(stderr, "Couldn't set %d x %d x %d video mode: %s\n",GrConf.uScreenWidth,GrConf.uScreenHeight,GrConf.uBPP,SDL_GetError());
   	  exit(1);
     	}
 	SDL_WM_SetCaption("Express",NULL);
@@ -113,12 +116,12 @@ int main(int argc,char* argv[])
 	}	
 	
 	// Zkus vytvoøit povrchy pro vrcholy a nastav jim náhodné polohy
-	if (!CreateModelSurfaces(&MyModel,&Conf)){
+	if (!CreateModelSurfaces(&MyModel,&GrConf)){
 	  fprintf(stderr, "Error rendering graph surfaces.\n");
 	  FreeModel(&MyModel);
 	  exit(1);
 	}
-	SetRandomLocations(&MyModel,Conf);
+	SetRandomLocations(&MyModel,GrConf);
 
 	// Vyèisti scénu bílou barvou
 	SDL_FillRect(screen, 0, SDL_MapRGBA(screen->format,0xff,0xff,0xff,0));
@@ -139,7 +142,7 @@ int main(int argc,char* argv[])
 		}		
 		// Pøi pøekreslení okna obnovuj scénu
 		if (event.type == SDL_VIDEOEXPOSE)
-		  RenderScene(screen,&MyModel,Conf);
+		  RenderScene(screen,&MyModel,GrConf);
 	    }
 
 	    // Pokud energie nespadla pod povolené minimum, provádìj simulaci
@@ -152,7 +155,7 @@ int main(int argc,char* argv[])
 	    
 	      // Pøekresli scénu (5 ~ 20 FPS)
 	      if (framesCounter == 3){
-	        RenderScene(screen,&MyModel,Conf);
+	        RenderScene(screen,&MyModel,GrConf);
 	        framesCounter = 0;
 	      }
 	    }
