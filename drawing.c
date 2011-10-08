@@ -4,10 +4,11 @@
 
 #include <SDL/SDL.h>
 
-void putpixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
+// Klasická funkce na vykreslení pixelů
+void putpixel(SDL_Surface *surface, int x, int y, unsigned int pixel)
 {
     const int bpp = surface->format->BytesPerPixel;
-    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
+    unsigned char *p = (unsigned char*)surface->pixels + y * surface->pitch + x * bpp;
 
     switch(bpp){
 		case 1:
@@ -15,7 +16,7 @@ void putpixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
 			break;
 
 		case 2:
-			*(Uint16 *)p = pixel;
+			*(unsigned short*)p = pixel;
 			break;
 
 		case 3:
@@ -31,11 +32,12 @@ void putpixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
 			break;
 
 		case 4:
-			*(Uint32 *)p = pixel;
+			*(unsigned int*)p = pixel;
 			break;
     };
 }
 
+// Zkusí uzamknout povrch pro přímý přístup
 void doLock(SDL_Surface* what)
 {
 	if (SDL_MUSTLOCK(what)){
@@ -44,12 +46,14 @@ void doLock(SDL_Surface* what)
     }
 }
 
+// Odemkne povrch pro přímý přístup
 void doUnlock(SDL_Surface* what)
 {
 	if (SDL_MUSTLOCK(what)) SDL_UnlockSurface(what);
 }
 
-void DrawLine(SDL_Surface *where,int x0,int y0,int x1,int y1,Uint32 pixel)
+// Vykreslí čáru z bodu do bodu pomocí Bressenhamova algoritmu
+void DrawLine(SDL_Surface *where,int x0,int y0,int x1,int y1,unsigned int pixel)
 {
    int dx = abs(x1-x0),dy = abs(y1-y0);
    int sx,sy,err = dx-dy,e2 = 0;
@@ -75,7 +79,8 @@ void DrawLine(SDL_Surface *where,int x0,int y0,int x1,int y1,Uint32 pixel)
    }
 }
 
-void DrawCircle(SDL_Surface *where,int x0, int y0, int radius, Uint32 pixel)
+// Vykreslí kružnici pomocí algoritmu mid-point 
+void DrawCircle(SDL_Surface *where,int x0, int y0, int radius, unsigned int pixel)
 {
    int error = -radius;
    int x = radius;
@@ -113,7 +118,8 @@ void DrawCircle(SDL_Surface *where,int x0, int y0, int radius, Uint32 pixel)
    }
 }
 
-void FillCircle(SDL_Surface *where, int x0, int y0, int radius, Uint32 inner,Uint32 outter) 
+// Vykreslí kruh aproximací
+void FillCircle(SDL_Surface *where, int x0, int y0, int radius, unsigned int inner,unsigned int outter) 
 {
    const int BPP = where->format->BytesPerPixel;
 	
@@ -123,12 +129,12 @@ void FillCircle(SDL_Surface *where, int x0, int y0, int radius, Uint32 inner,Uin
        double dx = floor(sqrt((2.0 * r * dy) - (dy * dy)));
        int x = x0 - dx;
 
-       Uint8 *target_pixel_a = (Uint8*)where->pixels + ((int)(y0 + r - dy)) * where->pitch + x * BPP;
-       Uint8 *target_pixel_b = (Uint8*)where->pixels + ((int)(y0 - r + dy)) * where->pitch + x * BPP;
+       unsigned char *target_pixel_a = (unsigned char*)where->pixels + ((int)(y0 + r - dy)) * where->pitch + x * BPP;
+       unsigned char *target_pixel_b = (unsigned char*)where->pixels + ((int)(y0 - r + dy)) * where->pitch + x * BPP;
                
        for (;x <= x0 + dx;++x){
-           *(Uint32*)target_pixel_a = inner;
-           *(Uint32*)target_pixel_b = inner;
+           *(unsigned int*)target_pixel_a = inner;
+           *(unsigned int*)target_pixel_b = inner;
            target_pixel_a += BPP;
            target_pixel_b += BPP;
        }
@@ -136,6 +142,7 @@ void FillCircle(SDL_Surface *where, int x0, int y0, int radius, Uint32 inner,Uin
    DrawCircle(where,x0,y0,radius,outter);
 } 
 
+// Provede blit jednoho porvrchu na druhý
 void DrawSurface(SDL_Surface* source, SDL_Surface* destination, int x, int y) 
 {
     if (!source || !destination) return;

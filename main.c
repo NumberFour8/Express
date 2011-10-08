@@ -10,16 +10,14 @@ void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 	
 	unsigned int x0,y0,x1,y1;
 	Vertex *a,*b;
+
 	// Vykresli v¹echny hrany
 	doLock(Screen);
 	for (unsigned int i = 0;i < pModel->uCountEdges;++i){
 	   a = pModel->pEdges[i].pFrom; b = pModel->pEdges[i].pTo;
 
-	   x0 = (int)a->position.x;
- 	   y0 = (int)a->position.y;
-
-	   x1 = (int)b->position.x;
-	   y1 = (int)b->position.y;
+	   x0 = (int)a->position.x;  y0 = (int)a->position.y;
+	   x1 = (int)b->position.x;  y1 = (int)b->position.y;
 
 	   if (x0 < 0) x0 = 0; if (y0 < 0) y0 = 0;
 	   if (x1 < 0) x1 = 0; if (y1 < 0) y1 = 0;
@@ -73,6 +71,7 @@ int main(int argc,char* argv[])
 	SimConf.fSpringConstant = 50;
 	SimConf.fSimStep = 0.02;
 	SimConf.fCoulombConstant = 8.70E+6;
+	SimConf.uMinimumKineticEnergy = 100;
 	///////////////////////////////////////////////////////////////////////////////////////
 
 	// Inicializace SDL
@@ -147,7 +146,7 @@ int main(int argc,char* argv[])
 	    if (motionAllowed){
 	      // Posuò simulaci
 	      if (SDL_GetTicks()-lastTick >= SimConf.fSimStep*1000){
-		SimulationStep(&MyModel,SimConf);
+		motionAllowed = SimulationStep(&MyModel,SimConf) > SimConf.uMinimumKineticEnergy; 
 	        lastTick = SDL_GetTicks();		
 	      }
 	    
