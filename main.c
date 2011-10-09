@@ -81,7 +81,7 @@ int main(int argc,char* argv[])
 	SimConf.fDamping = 0.5;
 	SimConf.fSpringConstant = 50;
 	SimConf.fSimStep = 0.02;
-	SimConf.fCoulombConstant = 8.70E+6;
+	SimConf.fCoulombConstant = 8.10E+6;
 	SimConf.uMinimumKineticEnergy = atoi(argv[2]);
 	///////////////////////////////////////////////////////////////////////////////////////
 
