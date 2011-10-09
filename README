@@ -47,7 +47,7 @@ Příklad:
 
 ZNÁMÉ CHYBY
 =================================================================
-Program valgrind hlásí memory leak v knihovně SDL.
+Program valgrind hlásí memory leaky v knihovně SDL.
 
 Další info:
 http://stackoverflow.com/questions/1997171/why-does-valgrind-say-basic-sdl-program-is-leaking-memory
