@@ -1,0 +1,52 @@
+EXPRESS
+
+Zápočtový program pro předmět Programování v C++ 1
+Autor: Lukáš Pohanka, ZS2, FJFI ČVUT (pohanluk@fjfi.cvut.cz)
+10.10.2011
+
+POPIS
+=================================================================
+Program zobrazuje graf z daného GML souboru do přehledného uspořádání použitím silového algoritmu.
+
+POŽADAVKY
+=================================================================
+Knihovny SDL 1.2 a SDL_ttf 2.0 (minimálně)
+
+KOMPILACE
+=================================================================
+Makefile se nachází ve složce build. Projekt má 2 možné konfigurace: Debug a Release.
+Při kompilaci se také jako součást projektu vytvoří knihovna libgml-parser.so. Tu je však
+třeba před spuštěním programu nakopírovat do složky /usr/lib nebo použít ldconfig.
+
+Příkaz:
+
+cd build
+make
+
+přeloží variantu Debug - tj. bez optimalizací pro ladění a hledání memory leaků.
+
+Příkaz:
+
+cd build
+make config=release
+
+přeloží variantu Release s optimalizacemi pro rychlost.
+
+POUŽITÍ
+=================================================================
+express název_gml_souboru limit_energie manualni_krokovani
+
+název_gml_souboru [STRING] - cesta k souboru ve formátu GML který se má modelovat
+limit_energie [INT] - mimimalni kinetická energie při které se má simulace zastavit (doporučená hodnota: 350)
+manualni_krokovani [BOOL] - 1 pro krokování simulace pomocí mezerníku, 0 pro automatický běh simulace
+
+Příklad:
+./express relations.gml 350 0
+
+ZNÁMÉ CHYBY
+=================================================================
+Program valgrind hlásí memory leak v knihovně SDL.
+
+Další info:
+http://stackoverflow.com/questions/1997171/why-does-valgrind-say-basic-sdl-program-is-leaking-memory
+

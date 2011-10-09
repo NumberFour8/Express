@@ -59,7 +59,7 @@ int main(int argc,char* argv[])
 
 	// Zkontroluj argumenty programu
 	if (argc < 3){
-	  fprintf(stderr,"Usage: express [path-to-gml-file] [energetic minimum] [manual-motion]\nLuká¹ Pohanka 2011");
+	  fprintf(stderr,"Usage: express [path-to-gml-file] [energetic minimum] [manual-motion]\nLukas Pohanka 2011\n\n");
 	  exit(0);
 	}
 

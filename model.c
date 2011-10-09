@@ -243,7 +243,7 @@ unsigned int SimulationStep(Model* pModel,const SimulationCfg Config)
 	if (pModel->uCountVertices == 0 || !pModel->pVertices)
 	  return 0;
 	  
-	unsigned int uEnergy = 0,uNbrs = 0;
+	unsigned int uEnergy = 0;
 	float distSq = 0,CoulombForce = 0,SpringForce = 0;
 
 	Vector2 totalForce;
@@ -265,8 +265,8 @@ unsigned int SimulationStep(Model* pModel,const SimulationCfg Config)
 
 	    // Najdi spoleèné hrany a spoèti sílu pru¾nosti
 	    for (int k = 0;k < pModel->uCountEdges;++k){
-		if (pModel->pEdges[k].pFrom == a && pModel->pEdges[k].pTo == b ||
-		    pModel->pEdges[k].pTo == a && pModel->pEdges[k].pFrom == b){
+		if ((pModel->pEdges[k].pFrom == a && pModel->pEdges[k].pTo == b) ||
+		    (pModel->pEdges[k].pTo == a && pModel->pEdges[k].pFrom == b)){
 		  SpringForce = Config.fSpringConstant*sqrt(distSq);
 	    	  totalForce = addVectors(totalForce,multiplyVector(getDirection(a,b),SpringForce));    
 		}
