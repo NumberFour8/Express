@@ -68,7 +68,7 @@ int main(int argc,char* argv[])
 	memset(&GrConf,0,sizeof(GraphicCfg));
 	SDL_Color inC = {0x1f,0xde,0x5b},outC = {0,0,0},lineC = {0x51,0x8c,0xf0};
 	
-	strcpy(GrConf.szFontFile,"calibri.ttf");
+	strcpy(GrConf.szFontFile,"default_font.ttf");
 	GrConf.innerCircle = inC;
 	GrConf.outterCircle = GrConf.fontColor = outC;
 	GrConf.lineColor = lineC;
