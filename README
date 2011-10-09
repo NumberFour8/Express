@@ -32,12 +32,14 @@ make config=release
 
 přeloží variantu Release s optimalizacemi pro rychlost.
 
+Poznámka: Makefile byl vygenerován programem premake4 podle skriptu premake4.lua jenž je součástí balíčku.
+
 POUŽITÍ
 =================================================================
 express název_gml_souboru limit_energie manualni_krokovani
 
 název_gml_souboru [STRING] - cesta k souboru ve formátu GML který se má modelovat
-limit_energie [INT] - mimimalni kinetická energie při které se má simulace zastavit (doporučená hodnota: 350)
+limit_energie [INT] - mimimalní kinetická energie při které se má simulace zastavit (doporučená hodnota: 350)
 manualni_krokovani [BOOL] - 1 pro krokování simulace pomocí mezerníku, 0 pro automatický běh simulace
 
 Příklad:
