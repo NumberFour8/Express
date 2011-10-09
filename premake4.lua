@@ -14,7 +14,7 @@ project "gml-parser"
 project "Express"
 	kind "ConsoleApp"
 	files { "main.c", "main.h", "drawing.c" , "drawing.h", "model.c", "model.h" }
-	links { "SDL", "SDLmain", "SDL_ttf", "gml-parser"}
+	links { "m", "SDL", "SDLmain", "SDL_ttf", "gml-parser"}
 	targetname "express"
 	configuration "Debug"
 		defines { "DEBUG" }
