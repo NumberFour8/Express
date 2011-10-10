@@ -1,6 +1,9 @@
 #include "model.h"
 #include "drawing.h"
 
+// Minimální norma
+#define MIN_NORM 5
+
 // Funkce pro práci s vektory
 Vector2 addVectors(Vector2 A,Vector2 B)
 { Vector2 C = {A.x+B.x,A.y+B.y}; return C; }
@@ -16,7 +19,7 @@ Vector2 getDirection(Vertex* A,Vertex* B)
 { 
 	Vector2 AB = {B->position.x-A->position.x,B->position.y-A->position.y};
 	float mag = sqrt(magnitudeSquared(AB));
-	if (mag < 5) mag = 5;
+	if (mag < MIN_NORM) mag = MIN_NORM;
 	return multiplyVector(AB,1/mag); 
 }
 
@@ -264,7 +267,7 @@ unsigned int SimulationStep(Model* pModel,const SimulationCfg Config)
     	    if (i == j) continue;
     	    b = (pModel->pVertices+j);
 	    distSq = GetVertexDistanceSquared(a,b);
-	    if (distSq < 5) distSq = 5;
+	    if (distSq < MIN_NORM*MIN_NORM) distSq = MIN_NORM*MIN_NORM;
 
 	    // Spoèti columbickou sílu
 	    CoulombForce = Config.fCoulombConstant*b->charge*a->charge/distSq;
@@ -274,7 +277,7 @@ unsigned int SimulationStep(Model* pModel,const SimulationCfg Config)
 	    for (int k = 0;k < pModel->uCountEdges;++k){
 		if ((pModel->pEdges[k].pFrom == a && pModel->pEdges[k].pTo == b) ||
 		    (pModel->pEdges[k].pTo == a && pModel->pEdges[k].pFrom == b)){
-		  SpringForce = Config.fSpringConstant*sqrt(distSq);
+		  SpringForce = Config.fSpringConstant*(sqrt(distSq)-Config.uMinimumSpringLength);
 	    	  totalForce = addVectors(totalForce,multiplyVector(getDirection(a,b),SpringForce));    
 		}
 	    }

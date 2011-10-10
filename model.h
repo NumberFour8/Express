@@ -51,7 +51,7 @@ typedef struct {
 
 typedef struct {
 	float fDamping,fSpringConstant,fSimStep,fCoulombConstant;
-	unsigned int uMinimumKineticEnergy;
+	unsigned int uMinimumKineticEnergy,uMinimumSpringLength;
 }SimulationCfg;
 
 int BuildModel(const char* szFile,Model* pModel);

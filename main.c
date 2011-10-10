@@ -72,17 +72,18 @@ int main(int argc,char* argv[])
 	GrConf.innerCircle = inC;
 	GrConf.outterCircle = GrConf.fontColor = outC;
 	GrConf.lineColor = lineC;
-	GrConf.uFontSize = 12; GrConf.uNodeRadius = 12;
-	GrConf.uScreenWidth = 800; GrConf.uScreenHeight = 600; GrConf.uBPP = 32;
+	GrConf.uFontSize = 12; GrConf.uNodeRadius = 5;
+	GrConf.uScreenWidth = 1280; GrConf.uScreenHeight = 800; GrConf.uBPP = 32;
 	///////////////////////////////////////////////////////////////////////////////////////
 
 	// Nastavení fyzikálních konstant simulace
 	SimulationCfg SimConf;
 	SimConf.fDamping = 0.5;
-	SimConf.fSpringConstant = 50;
+	SimConf.fSpringConstant = 200;
 	SimConf.fSimStep = 0.02;
 	SimConf.fCoulombConstant = 8.10E+6;
 	SimConf.uMinimumKineticEnergy = atoi(argv[2]);
+	SimConf.uMinimumSpringLength = 80;
 	///////////////////////////////////////////////////////////////////////////////////////
 
 	// Inicializace SDL
