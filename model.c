@@ -1,7 +1,6 @@
 #include "model.h"
 #include "drawing.h"
 
-// Minimální norma
 #define MIN_NORM 5
 
 // Funkce pro práci s vektory
@@ -142,7 +141,7 @@ int BuildModel(const char* szFile,Model* pModel)
 	  c->pTo = GetVertexAddressById(pModel->pVertices,nVertices,c->idTo);
 	  c->pFrom = GetVertexAddressById(pModel->pVertices,nVertices,c->idFrom);
 	  if (c->pTo == NULL || c->pFrom == NULL){
-	    fprintf(stderr,"Invalid GML file - vertices in edge not found!\n");
+	    fprintf(stderr,"Invalid GML file - vertices referenced in edge %d not found!\n",i);
 	    FreeModel(pModel);
 	    return 0;
 	  }
@@ -287,7 +286,7 @@ unsigned int SimulationStep(Model* pModel,const SimulationCfg Config)
 	  a->velocity = multiplyVector(addVectors(a->velocity,multiplyVector(totalForce,Config.fSimStep)),Config.fDamping);
 	  a->position = addVectors(a->position,multiplyVector(a->velocity,Config.fSimStep));
 
-	  // Spoèti a vra» kinetickou energii systému (hmotnost èásti je jednotková)
+	  // Spoèti a vra» kinetickou energii systému (hmotnost èástice je jednotková)
 	  uEnergy += magnitudeSquared(a->velocity);
 	}
 
