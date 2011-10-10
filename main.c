@@ -73,7 +73,7 @@ int main(int argc,char* argv[])
 	GrConf.outterCircle = GrConf.fontColor = outC;
 	GrConf.lineColor = lineC;
 	GrConf.uFontSize = 12; GrConf.uNodeRadius = 5;
-	GrConf.uScreenWidth = 1280; GrConf.uScreenHeight = 800; GrConf.uBPP = 32;
+	GrConf.uScreenWidth = 1024; GrConf.uScreenHeight = 768; GrConf.uBPP = 32;
 	///////////////////////////////////////////////////////////////////////////////////////
 
 	// Nastavení fyzikálních konstant simulace
