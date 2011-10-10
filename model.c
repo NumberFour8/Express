@@ -16,6 +16,7 @@ Vector2 getDirection(Vertex* A,Vertex* B)
 { 
 	Vector2 AB = {B->position.x-A->position.x,B->position.y-A->position.y};
 	float mag = sqrt(magnitudeSquared(AB));
+	if (mag < 5) mag = 5;
 	return multiplyVector(AB,1/mag); 
 }
 
@@ -263,6 +264,7 @@ unsigned int SimulationStep(Model* pModel,const SimulationCfg Config)
     	    if (i == j) continue;
     	    b = (pModel->pVertices+j);
 	    distSq = GetVertexDistanceSquared(a,b);
+	    if (distSq < 5) distSq = 5;
 
 	    // Spoèti columbickou sílu
 	    CoulombForce = Config.fCoulombConstant*b->charge*a->charge/distSq;
