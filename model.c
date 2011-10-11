@@ -220,7 +220,7 @@ int CreateModelSurfaces(Model* pModel,GraphicCfg *Config)
 		// ... spoleènì s textem		
 		SDL_Surface *Text = TTF_RenderText_Solid(LabelFont,(char*)pModel->pVertices[i].szVertexName,Config->fontColor);
 		DrawSurface(Text,c,2,Config->uNodeRadius*2+2+Gap);
-		SDL_Flip(c);
+		//SDL_Flip(c);
 		
 		SDL_FreeSurface(Text);
 	}
