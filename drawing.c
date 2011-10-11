@@ -123,7 +123,7 @@ void FillCircle(SDL_Surface *where, int x0, int y0, int radius, unsigned int inn
        int x = x0-dx;
 
        unsigned char *target_pixel_a = (unsigned char*)where->pixels + ((int)(y0 + r - dy)) * where->pitch + x * BPP,
-       		     *target_pixel_b = (unsigned char*)where->pixels + ((int)(y0 - r + dy)) * where->pitch + x * BPP;
+					 *target_pixel_b = (unsigned char*)where->pixels + ((int)(y0 - r + dy)) * where->pitch + x * BPP;
                
        for (;x <= x0+dx;++x){
            *(unsigned int*)target_pixel_a = inner;
