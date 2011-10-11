@@ -54,6 +54,52 @@ void RenderScene(SDL_Surface* Screen,Model* pModel,const GraphicCfg Config)
 	SDL_Flip(Screen);
 }
 
+// Oparsuje konfiguraèní soubor
+int ReadConfigurationFile(const char* szFile,GraphicCfg *GConf,SimulationCfg *SConf)
+{
+	FILE* fp = fopen(szFile,"r");
+	if (!fp) return 0;
+	
+	memset(GConf,0,sizeof(GraphicCfg));
+	memset(SConf,0,sizeof(SimulationCfg));
+	
+	char line[100];
+	memset((char*)line,0,100);
+	
+	while (fgets((char*)line,100,fp)){
+		if (strstr((char*)line,"innerColor:"))
+		  sscanf((char*)line,"%*s%d,%d,%d",(int*)&GConf->innerCircle.r,(int*)&GConf->innerCircle.g,(int*)&GConf->innerCircle.b);
+		else if (strstr((char*)line,"outterColor:"))
+		  sscanf((char*)line,"%*s%d,%d,%d",(int*)&GConf->outterCircle.r,(int*)&GConf->outterCircle.g,(int*)&GConf->outterCircle.b);
+		else if (strstr((char*)line,"lineColor:"))
+		  sscanf((char*)line,"%*s%d,%d,%d",(int*)&GConf->lineColor.r,(int*)&GConf->lineColor.g,(int*)&GConf->lineColor.b);
+		else if (strstr((char*)line,"fontColor:"))
+		  sscanf((char*)line,"%*s%d,%d,%d",(int*)&GConf->fontColor.r,(int*)&GConf->fontColor.g,(int*)&GConf->fontColor.b);
+		else if (strstr((char*)line,"fontName:"))
+		  sscanf((char*)line,"%*s%s",(char*)GConf->szFontFile);
+		else if (strstr((char*)line,"fontSize:"))
+		  sscanf((char*)line,"%*s%d",(int*)&GConf->uFontSize);
+		else if (strstr((char*)line,"nodeRadius:"))
+		  sscanf((char*)line,"%*s%d",(int*)&GConf->uNodeRadius);
+		else if (strstr((char*)line,"screenConfig:"))
+		  sscanf((char*)line,"%*s%dx%dx%d",(int*)&GConf->uScreenWidth,(int*)&GConf->uScreenHeight,(int*)&GConf->uBPP);
+		else if (strstr((char*)line,"damping:"))
+		  sscanf((char*)line,"%*s%f",&SConf->fDamping);
+		else if (strstr((char*)line,"springConstant:"))
+		  sscanf((char*)line,"%*s%f",&SConf->fSpringConstant);
+		else if (strstr((char*)line,"simulationStep:"))
+		  sscanf((char*)line,"%*s%f",&SConf->fSimStep);
+		else if (strstr((char*)line,"coulombConstant:"))
+		  sscanf((char*)line,"%*s%f",&SConf->fCoulombConstant);
+		else if (strstr((char*)line,"springLength:"))
+		  sscanf((char*)line,"%*s%d",(int*)&SConf->uMinimumSpringLength);
+		else continue;
+	}
+	
+	fclose(fp);
+	return 1;
+}
+
 int main(int argc,char* argv[])
 {
 
@@ -63,29 +109,16 @@ int main(int argc,char* argv[])
 	  exit(0);
 	}
 
-	// Konfigurace zobrazení, barev a velikostí
+	// Pøeèti konfiguraci ze souboru
+	const char* szCfgFile = "config";
 	GraphicCfg GrConf;
-	memset(&GrConf,0,sizeof(GraphicCfg));
-	SDL_Color inC = {0x1f,0xde,0x5b},outC = {0,0,0},lineC = {0x51,0x8c,0xf0};
-	
-	strcpy(GrConf.szFontFile,"default_font.ttf");
-	GrConf.innerCircle = inC;
-	GrConf.outterCircle = GrConf.fontColor = outC;
-	GrConf.lineColor = lineC;
-	GrConf.uFontSize = 12; GrConf.uNodeRadius = 5;
-	GrConf.uScreenWidth = 1024; GrConf.uScreenHeight = 768; GrConf.uBPP = 32;
-	///////////////////////////////////////////////////////////////////////////////////////
-
-	// Nastavení fyzikálních konstant simulace
 	SimulationCfg SimConf;
-	SimConf.fDamping = 0.5;
-	SimConf.fSpringConstant = 200;
-	SimConf.fSimStep = 0.02;
-	SimConf.fCoulombConstant = 8.10E+6;
-	SimConf.uMinimumKineticEnergy = atoi(argv[2]);
-	SimConf.uMinimumSpringLength = 80;
-	///////////////////////////////////////////////////////////////////////////////////////
 
+	if (!ReadConfigurationFile(szCfgFile,&GrConf,&SimConf)){
+	  fprintf(stderr,"Cannot read configuraton file: %s\n",szCfgFile);
+	  exit(0);
+	}
+	
 	// Inicializace SDL
 	SDL_Surface *MyScreen;
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -163,7 +196,7 @@ int main(int argc,char* argv[])
 	    if (motionAllowed){
 	      // Posuò simulaci
 	      if (SDL_GetTicks()-lastTick >= SimConf.fSimStep*1000 && !manualMotion){
-		motionAllowed = SimulationStep(&MyModel,SimConf) > SimConf.uMinimumKineticEnergy; 
+			motionAllowed = SimulationStep(&MyModel,SimConf) > SimConf.uMinimumKineticEnergy; 
 	        lastTick = SDL_GetTicks();		
 	      }
 	    

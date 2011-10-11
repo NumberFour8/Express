@@ -1,0 +1,13 @@
+innerColor: 128,255,192
+outterColor: 0,0,0
+fontColor: 0,0,0
+lineColor: 64,128,255
+fontName: default_font.ttf
+fontSize: 12
+nodeRadius: 5
+screenConfig: 800x600x32
+damping: 0.5
+springConstant: 200
+simulationStep: 0.02
+coulombConstant: 8.10E+6
+minimumSpringLength: 80

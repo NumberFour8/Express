@@ -1,7 +1,7 @@
 #include "model.h"
 #include "drawing.h"
 
-#define MIN_NORM 5
+#define MIN_NORM 8
 
 // Funkce pro práci s vektory
 Vector2 addVectors(Vector2 A,Vector2 B)
