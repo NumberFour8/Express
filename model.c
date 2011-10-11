@@ -140,6 +140,8 @@ int BuildModel(const char* szFile,Model* pModel)
 	  // Najdi adresy vrcholù podle jejich ID
 	  c->pTo = GetVertexAddressById(pModel->pVertices,nVertices,c->idTo);
 	  c->pFrom = GetVertexAddressById(pModel->pVertices,nVertices,c->idFrom);
+	  
+	  // Kontroluj, zda jsou vrcholy dostupné
 	  if (c->pTo == NULL || c->pFrom == NULL){
 	    fprintf(stderr,"Invalid GML file - vertices referenced in edge %d not found!\n",i);
 	    FreeModel(pModel);
